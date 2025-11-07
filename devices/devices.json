@@ -1,0 +1,7 @@
+{
+  "devices": [
+    { "vendor": "0x048D", "product": "0xC993", "name": "ITE Device(8295) - LOQ/Legion" },
+    { "vendor": "0x048D", "product": "0xC996", "name": "ITE Device(8176) - Legion alt" },
+    { "vendor": "0x048D", "product": "0xC963", "name": "ITE Device - IdeaPad/Legion 2021" }
+  ]
+}

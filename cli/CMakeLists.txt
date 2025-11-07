@@ -1,0 +1,5 @@
+add_executable(legionaura legionaura.cpp)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(HIDAPI REQUIRED hidapi-hidraw)
+target_include_directories(legionaura PRIVATE ${HIDAPI_INCLUDE_DIRS})
+target_link_libraries(legionaura ${HIDAPI_LIBRARIES})

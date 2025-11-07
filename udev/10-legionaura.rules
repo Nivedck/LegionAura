@@ -1,0 +1,7 @@
+# ITE keyboard controllers (Lenovo LOQ/Legion/IdeaPad)
+SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c993", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c996", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c963", MODE="0666"
+
+# Generic ITE catch-all (optional; looser)
+# SUBSYSTEM=="usb", ATTR{idVendor}=="048d", MODE="0666"
