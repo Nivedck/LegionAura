@@ -1,7 +1,20 @@
 {
-  "devices": [
-    { "vendor": "0x048D", "product": "0xC993", "name": "ITE Device(8295) - LOQ/Legion" },
-    { "vendor": "0x048D", "product": "0xC996", "name": "ITE Device(8176) - Legion alt" },
-    { "vendor": "0x048D", "product": "0xC963", "name": "ITE Device - IdeaPad/Legion 2021" }
-  ]
+    "vendor": "0x048D",
+    "models": [
+        { "year": 2024, "name": "Legion Pro",          "pid": "0xC995" },
+        { "year": 2024, "name": "Legion Regular/Slim", "pid": "0xC994" },
+        { "year": 2024, "name": "Lenovo LOQ",          "pid": "0xC993" },
+
+        { "year": 2023, "name": "Legion Pro",          "pid": "0xC985" },
+        { "year": 2023, "name": "Legion Slim",         "pid": "0xC984" },
+        { "year": 2023, "name": "Lenovo LOQ",          "pid": "0xC983" },
+
+        { "year": 2022, "name": "Legion Pro/Regular",  "pid": "0xC975" },
+        { "year": 2022, "name": "IdeaPad Gaming",      "pid": "0xC973" },
+
+        { "year": 2021, "name": "Legion Pro/Regular",  "pid": "0xC965" },
+        { "year": 2021, "name": "IdeaPad Gaming",      "pid": "0xC963" },
+
+        { "year": 2020, "name": "Legion Pro/Regular",  "pid": "0xC955" }
+    ]
 }
