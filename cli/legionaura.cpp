@@ -6,14 +6,12 @@
 #include "legionaura.h"
 
 // ------------------------------------------------------
-// Normalize user color count (1->4, 2->4, 3->4, >4 trim)
+// Normalize colors (1->4, 2->4, 3->4, >4->trim)
 // ------------------------------------------------------
 static std::vector<std::string> normalize_colors(const std::vector<std::string>& in) {
     if (in.empty()) return in;
-
     std::vector<std::string> out = in;
 
-    // lowercase hex
     for (auto& s : out) {
         std::transform(s.begin(), s.end(), s.begin(),
                        [](unsigned char c){ return std::tolower(c); });
@@ -35,10 +33,12 @@ static void usage(const char* prog){
       "  " << prog << " wave <ltr|rtl> [--speed 1..4] [--brightness 1|2]\n"
       "  " << prog << " hue [--speed 1..4] [--brightness 1|2]\n"
       "  " << prog << " off\n"
-      "  " << prog << " --brightness 1|2        (brightness only)\n"
-      "Notes: colors are hex RRGGBB.\n";
+      "  " << prog << " --brightness 1|2    (brightness only)\n";
 }
 
+// ------------------------------------------------------
+// MAIN
+// ------------------------------------------------------
 int main(int argc, char** argv){
     if (argc < 2){ usage(argv[0]); return 1; }
 
@@ -47,48 +47,39 @@ int main(int argc, char** argv){
 
     uint8_t speed = 1, brightness = 1;
     LAWaveDir wdir = LAWaveDir::None;
-    LAEffect eff = LAEffect::Static; // default (will be overwritten)
-    std::array<LAColor,4> zones { LAColor{0,0,0},LAColor{0,0,0},LAColor{0,0,0},LAColor{0,0,0} };
+    LAEffect eff = LAEffect::Static;
+    std::array<LAColor,4> zones {LAColor{0,0,0},LAColor{0,0,0},LAColor{0,0,0},LAColor{0,0,0}};
 
     int i = 2;
 
     // ------------------------------------------------------
-    // BRIGHTNESS-ONLY MODE
+    // BRIGHTNESS ONLY MODE ( --brightness 2 )
     // ------------------------------------------------------
-    if (cmd.rfind("--",0) == 0) {
-        // This means user typed only flags: e.g. --brightness 2
-        while (i <= argc - 1) {
-            std::string f = argv[i++];
-            if (f == "--brightness" && i < argc) {
-                brightness = (uint8_t)std::stoi(argv[i++]);
-                if (brightness < 1 || brightness > 2) {
-                    std::cerr << "brightness must be 1 or 2\n";
-                    return 2;
-                }
-            } else {
-                std::cerr << "Unknown argument: " << f << "\n";
-                return 2;
-            }
+    if (cmd == "--brightness") {
+        if (argc < 3) {
+            std::cerr << "brightness requires 1 or 2\n";
+            return 2;
         }
 
-        LAParams p;
-        p.effect     = LAEffect::None;
-        p.brightness = brightness;
-        p.speed      = 1;
-        p.zones      = zones;
-        p.waveDir    = LAWaveDir::None;
+        brightness = (uint8_t)std::stoi(argv[2]);
+        if (brightness < 1 || brightness > 2) {
+            std::cerr << "brightness must be 1 or 2\n";
+            return 2;
+        }
 
         LegionAura kb;
         if (!kb.open()){ std::cerr << "Device open failed.\n"; return 3; }
+        bool ok = kb.setBrightnessOnly(brightness);
 
-        bool ok = kb.apply(p);
         std::cout << (ok ? "OK\n" : "FAIL\n");
         return ok ? 0 : 4;
     }
 
     // ------------------------------------------------------
-    // parse dynamic colors before flags
+    // Helper lambdas
     // ------------------------------------------------------
+    std::vector<std::string> rawColors;
+
     auto parseDynamicColors = [&](std::vector<std::string>& out){
         while (i < argc && argv[i][0] != '-') {
             out.push_back(argv[i]);
@@ -97,7 +88,7 @@ int main(int argc, char** argv){
     };
 
     auto fillZones = [&](const std::vector<std::string>& cvec){
-        for (int z=0; z<4; ++z) {
+        for (int z=0; z<4; ++z){
             auto c = LegionAura::parseHexRGB(cvec[z]);
             if (!c){
                 std::cerr << "Invalid color: " << cvec[z] << "\n";
@@ -108,10 +99,8 @@ int main(int argc, char** argv){
     };
 
     // ------------------------------------------------------
-    // COMMAND HANDLING
+    // COMMANDS
     // ------------------------------------------------------
-    std::vector<std::string> rawColors;
-
     if (cmd == "static") {
         eff = LAEffect::Static;
         parseDynamicColors(rawColors);
@@ -122,13 +111,16 @@ int main(int argc, char** argv){
     } else if (cmd == "breath") {
         eff = LAEffect::Breath;
         parseDynamicColors(rawColors);
-        if (rawColors.empty()){ std::cerr << "breath needs at least 1 color\n"; return 2; }
+        if (rawColors.empty()){ std::cerr << "breath needs 1+ colors\n"; return 2; }
         rawColors = normalize_colors(rawColors);
         fillZones(rawColors);
 
     } else if (cmd == "wave") {
         eff = LAEffect::Wave;
-        if (i >= argc){ std::cerr << "wave requires direction ltr|rtl\n"; return 2; }
+        if (i >= argc){
+            std::cerr << "wave requires direction ltr|rtl\n";
+            return 2;
+        }
         std::string d = argv[i++];
         if (d == "ltr") wdir = LAWaveDir::LTR;
         else if (d == "rtl") wdir = LAWaveDir::RTL;
@@ -144,41 +136,44 @@ int main(int argc, char** argv){
         std::cout << (ok ? "OK\n" : "FAIL\n");
         return ok ? 0 : 4;
 
-    } else if (cmd == "brightness") {
-        // direct brightness command
-        eff = LAEffect::None;
-        if (i >= argc){ std::cerr << "brightness requires 1|2\n"; return 2; }
-        brightness = (uint8_t)std::stoi(argv[i++]);
-        if (brightness<1 || brightness>2){ std::cerr << "brightness 1 or 2\n"; return 2; }
     } else {
         usage(argv[0]);
         return 1;
     }
 
     // ------------------------------------------------------
-    // parse optional flags
+    // OPTIONAL FLAGS
     // ------------------------------------------------------
     while (i < argc){
         std::string f = argv[i++];
         if (f == "--speed" && i<argc) {
             speed = (uint8_t)std::stoi(argv[i++]);
-            if (speed<1 || speed>4){ std::cerr << "speed 1..4\n"; return 2; }
+            if (speed<1 || speed>4){
+                std::cerr << "speed must be 1..4\n";
+                return 2;
+            }
         } else if (f == "--brightness" && i<argc) {
             brightness = (uint8_t)std::stoi(argv[i++]);
-            if (brightness<1 || brightness>2){ std::cerr << "brightness 1 or 2\n"; return 2; }
+            if (brightness<1 || brightness>2){
+                std::cerr << "brightness must be 1 or 2\n";
+                return 2;
+            }
         } else {
-            std::cerr << "Unknown argument: " << f << "\n";
+            std::cerr << "Unknown arg: " << f << "\n";
             return 2;
         }
     }
 
     // ------------------------------------------------------
-    // APPLY
+    // APPLY FINAL PARAMETERS
     // ------------------------------------------------------
     LAParams p{eff, speed, brightness, zones, wdir};
 
     LegionAura kb;
-    if (!kb.open()){ std::cerr << "Device open failed.\n"; return 3; }
+    if (!kb.open()){
+        std::cerr << "Device open failed.\n";
+        return 3;
+    }
 
     bool ok = kb.apply(p);
     std::cout << (ok ? "OK\n" : "FAIL\n");
