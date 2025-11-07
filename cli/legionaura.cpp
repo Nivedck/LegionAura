@@ -27,20 +27,31 @@ static std::vector<std::string> normalize_colors(const std::vector<std::string>&
 
 static void usage(const char* prog){
     std::cerr <<
-      "Usage:\n"
+      "Usage:\n\n"
       "  " << prog << " static <colors...> [--brightness 1|2]\n"
       "  " << prog << " breath <colors...> [--speed 1..4] [--brightness 1|2]\n"
       "  " << prog << " wave <ltr|rtl> [--speed 1..4] [--brightness 1|2]\n"
       "  " << prog << " hue [--speed 1..4] [--brightness 1|2]\n"
       "  " << prog << " off\n"
-      "  " << prog << " --brightness 1|2    (brightness only)\n";
+      "  " << prog << " --brightness 1|2        (brightness only)\n\n"
+      "Notes:\n"
+      "  • Colors must be hex RRGGBB (example: ff0000)\n"
+      "  • If only 1–3 colors are given, remaining zones are auto-filled\n"
+      "  • Brightness: 1 = low, 2 = high\n";
 }
 
 // ------------------------------------------------------
-// MAIN
+// MAIN FUNCTION ---- Nivedck
 // ------------------------------------------------------
 int main(int argc, char** argv){
     if (argc < 2){ usage(argv[0]); return 1; }
+
+    // Help flags
+    if (cmd == "-h" || cmd == "--help") {
+        usage(argv[0]);
+        return 0;
+    }
+
 
     std::string cmd = argv[1];
     std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);

@@ -1,3 +1,4 @@
+
 # LegionAura
 
 <p align="center">
@@ -88,29 +89,81 @@ LegionAura communicates with the keyboard’s ITE controller using a single USB 
 
 ## 🚀 Getting Started
 
-### Installation
+There are two ways to install LegionAura: through an AUR helper (for Arch-based distributions) or by building it manually.
 
-You can install LegionAura by cloning the repository and building it from source.
+### ✅ Method 1 — Install from the AUR (Arch Linux)
 
-### Building from Source
+If you are on Arch Linux or an Arch-based distribution, you can install LegionAura from the [Arch User Repository (AUR)](https://aur.archlinux.org/packages/legionaura-git).
 
-**Prerequisites:**
-* A C++17 compatible compiler (e.g., GCC, Clang)
-* CMake (version 3.16 or later)
-* libusb (version 1.0 or later)
+Use your favorite AUR helper.
 
-**Build steps:**
+**Using `yay`:**
+```bash
+yay -S legionaura-git
+```
+
+**Using `paru`:**
+```bash
+paru -S legionaura-git
+```
+
+The package will automatically handle dependencies, build the project, and install it to your system.
+
+### ✅ Method 2 — Build Manually (Any Linux Distribution)
+
+If you are not on an Arch-based distribution or prefer to build the project yourself, follow these steps.
+
+**1. Install Dependencies**
+
+First, you need to install the required build tools and libraries.
+
+*   **A C++17 compatible compiler:** `gcc` or `clang`
+*   **CMake:** Version 3.16 or later
+*   **libusb:** Version 1.0 or later
+*   **Git:** To clone the repository
+
+On **Debian/Ubuntu-based** distributions, you can install them with:
+```bash
+sudo apt update
+sudo apt install build-essential cmake libusb-1.0-0-dev git
+```
+
+On **Fedora/RHEL-based** distributions, you can install them with:
+```bash
+sudo dnf groupinstall "Development Tools"
+sudo dnf install cmake libusb1-devel git
+```
+
+**2. Clone the Repository**
 
 ```bash
 git clone https://github.com/nivedck/LegionAura.git
 cd LegionAura
+```
+
+**3. Build and Install**
+
+```bash
 mkdir build
 cd build
 cmake ..
 make
+sudo make install
 ```
 
-This will create the `legionaura` executable in the `build/cli` directory.
+This will compile the project and install the `legionaura` executable to `/usr/local/bin`, making it available system-wide.
+
+**4. Set Up udev Rules**
+
+To allow LegionAura to access the keyboard without running it as root, you need to install a `udev` rule. This gives your user account permission to control the device.
+
+```bash
+sudo cp ../udev/10-legionaura.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+After this, unplug and reconnect your keyboard (or reboot your system) for the changes to take full effect. You can now run `legionaura` as a regular user.
 
 ---
 
@@ -148,6 +201,12 @@ Usage:
 ## 🤝 Contributing
 
 Contributions are welcome! If you have a feature request, bug report, or want to contribute to the code, please open an issue or a pull request.
+
+---
+
+## ⚠️ Disclaimer
+
+This tool modifies your keyboard's firmware settings. The author is not responsible for any damage that may occur to your device. **Use at your own risk.**
 
 ---
 
