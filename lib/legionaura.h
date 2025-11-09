@@ -6,15 +6,7 @@
 #include <vector>
 #include <libusb-1.0/libusb.h>
 
-
 struct LAColor { uint8_t r, g, b; };
-
-
-// This will confuse the linker
-// bool autoDetect();   // Try to detect any supported device from devices.json
-// static std::vector<std::pair<uint16_t,uint16_t>> loadSupportedDevices(const std::string& path);
-// bool setBrightnessOnly(uint8_t level);
-
 
 enum class LAEffect : uint8_t {
     None   = 0x00,  // brightness-only mode
@@ -36,7 +28,6 @@ struct LAParams {
     LAWaveDir waveDir;
 };
 
-
 class LegionAura {
 public:
     LegionAura(uint16_t vid = 0x048D, uint16_t pid = 0xC993);
@@ -55,6 +46,12 @@ public:
     static std::optional<LAColor> parseHexRGB(const std::string& hex); // "RRGGBB"
     static std::vector<std::pair<uint16_t,uint16_t>>
     loadSupportedDevices(const std::string& path);
+
+    // ----------------------------------------------------
+    // NEW: Safe accessors for GUI
+    // ----------------------------------------------------
+    uint16_t getVid() const { return vid_; }
+    uint16_t getPid() const { return pid_; }
 
 private:
     std::vector<uint8_t> buildPayload(const LAParams& p);

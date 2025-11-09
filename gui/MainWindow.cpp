@@ -9,14 +9,40 @@
 #include <QSettings>
 #include <QPalette>
 #include <QStyleFactory>
+#include <QTimer>
+#include <map>
 
+// ------------------------------------------------------------------
+// Device name resolver
+// ------------------------------------------------------------------
+static QString resolveDeviceName(uint16_t pid)
+{
+    static const std::map<uint16_t, QString> names = {
+        {0xC993, "Lenovo LOQ"},
+        {0xC996, "Lenovo Legion"},
+        {0xC963, "Lenovo IdeaPad Gaming"}
+    };
+
+    auto it = names.find(pid);
+    if (it != names.end())
+        return it->second;
+
+    return "Lenovo (Unknown Model)";
+}
+
+// ------------------------------------------------------------------
+// MainWindow
+// ------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    // ----- Modern dark style -----
+    // Auto-detect device shortly after app start
+    QTimer::singleShot(100, this, &MainWindow::autoDetectOnStartup);
+
+    // Dark UI theme
     qApp->setStyle(QStyleFactory::create("Fusion"));
     QPalette dark;
     dark.setColor(QPalette::Window, QColor(30,30,30));
@@ -30,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent)
     dark.setColor(QPalette::HighlightedText, Qt::black);
     qApp->setPalette(dark);
 
-    // ----- Connect signals -----
+    // UI Signals
     connect(ui->btnDetect, &QPushButton::clicked, this, &MainWindow::onDetectClicked);
     connect(ui->btnApply,  &QPushButton::clicked, this, &MainWindow::onApplyClicked);
     connect(ui->btnOff,    &QPushButton::clicked, this, &MainWindow::onOffClicked);
@@ -43,9 +69,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->comboEffect, qOverload<int>(&QComboBox::currentIndexChanged),
             this, &MainWindow::onEffectChanged);
 
-    // ----- Initial state -----
+    // Initial UI state
     onEffectChanged(ui->comboEffect->currentIndex());
-    ui->lblDevice->setText("Device: (not connected)");
+    ui->lblDeviceLeft->setText("Device: (not connected)");
+    ui->lblDeviceName->setText("");
 }
 
 MainWindow::~MainWindow()
@@ -53,37 +80,58 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-//
-// ===================================================================
-// Device detection
-// ===================================================================
-//
+// ------------------------------------------------------------------
+// Manual detect
+// ------------------------------------------------------------------
 void MainWindow::onDetectClicked()
 {
     if (kb_.autoDetect()) {
         deviceReady_ = true;
-        ui->lblDevice->setText("Device: connected (auto-detected)");
+
+        QString name = resolveDeviceName(kb_.getPid());
+        ui->lblDeviceLeft->setText("Device: connected");
+        ui->lblDeviceName->setText(name);
+
         setStatusOk("Device connected");
         return;
     }
 
-    // fallback: use default LOQ VID/PID
     if (kb_.open()) {
         deviceReady_ = true;
-        ui->lblDevice->setText("Device: connected (default)");
-        setStatusOk("Device connected");
+
+        QString name = resolveDeviceName(kb_.getPid());
+        ui->lblDeviceLeft->setText("Device: connected");
+        ui->lblDeviceName->setText(name);
+
+        setStatusOk("Device connected (default)");
     } else {
         deviceReady_ = false;
-        ui->lblDevice->setText("Device: (not connected)");
-        setStatusErr("Failed to open device. Try running with sudo or install udev rules.");
+
+        ui->lblDeviceLeft->setText("Device: (not connected)");
+        ui->lblDeviceName->setText("");
+
+        setStatusErr("Failed to open device. Try installing udev rules.");
     }
 }
 
-//
-// ===================================================================
+// ------------------------------------------------------------------
+// Auto detect on startup
+// ------------------------------------------------------------------
+void MainWindow::autoDetectOnStartup()
+{
+    if (kb_.autoDetect()) {
+        deviceReady_ = true;
+
+        ui->lblDeviceLeft->setText("Device: connected");
+        ui->lblDeviceName->setText(resolveDeviceName(kb_.getPid()));
+
+        setStatusOk("Device auto-detected");
+    }
+}
+
+// ------------------------------------------------------------------
 // Color picker helpers
-// ===================================================================
-//
+// ------------------------------------------------------------------
 std::optional<QString> MainWindow::pickHexColor(const QString &initialHex)
 {
     QColor initial = hexToRgb(initialHex).value_or(QColor(255,0,0));
@@ -124,6 +172,9 @@ void MainWindow::setBtnSwatch(QPushButton* btn, const QString& hex)
     );
 }
 
+// ------------------------------------------------------------------
+// Zone pickers
+// ------------------------------------------------------------------
 void MainWindow::onPickZ1()
 {
     auto val = pickHexColor(ui->editZ1->text());
@@ -156,11 +207,9 @@ void MainWindow::onPickZ4()
     setBtnSwatch(ui->btnColor4, *val);
 }
 
-//
-// ===================================================================
-// Effect mode change handling
-// ===================================================================
-//
+// ------------------------------------------------------------------
+// Effect change handler
+// ------------------------------------------------------------------
 void MainWindow::onEffectChanged(int idx)
 {
     QString mode = ui->comboEffect->itemText(idx).toLower();
@@ -183,33 +232,22 @@ void MainWindow::onEffectChanged(int idx)
     ui->comboDirection->setEnabled(needsDir);
 }
 
-//
-// ===================================================================
-// Auto-fill for 1–3 colors (same logic as CLI)
-// ===================================================================
+// ------------------------------------------------------------------
+// Auto-fill colors
+// ------------------------------------------------------------------
 std::array<QString,4> MainWindow::normalize4(const std::vector<QString> &in)
 {
-    if (in.empty()) {
-        return {"ffffff","ffffff","ffffff","ffffff"};
-    }
-
-    if (in.size() == 1) {
-        return {in[0], in[0], in[0], in[0]};
-    }
-    if (in.size() == 2) {
-        return {in[0], in[1], in[1], in[1]};
-    }
-    if (in.size() == 3) {
-        return {in[0], in[1], in[2], in[2]};
-    }
-
+    if (in.empty()) return {"ffffff","ffffff","ffffff","ffffff"};
+    if (in.size() == 1) return {in[0], in[0], in[0], in[0]};
+    if (in.size() == 2) return {in[0], in[1], in[1], in[1]};
+    if (in.size() == 3) return {in[0], in[1], in[2], in[2]};
     return {in[0], in[1], in[2], in[3]};
 }
 
-//
-// ===================================================================
-// Build LAParams from the UI
-// ===================================================================
+// ----------------
+// ------------------------------------------------------------------
+// Build params from UI
+// ------------------------------------------------------------------
 std::optional<LAParams> MainWindow::buildParamsFromUi() const
 {
     QString mode = ui->comboEffect->currentText().toLower();
@@ -225,16 +263,13 @@ std::optional<LAParams> MainWindow::buildParamsFromUi() const
     else if (mode == "hue")    p.effect = LAEffect::Hue;
     else return std::nullopt;
 
-    // Wave-specific
     if (p.effect == LAEffect::Wave) {
         QString d = ui->comboDirection->currentText().toLower();
         if (d == "ltr") p.waveDir = LAWaveDir::LTR;
         else if (d == "rtl") p.waveDir = LAWaveDir::RTL;
     }
 
-    // Static/Breath → colors required
-    if (p.effect == LAEffect::Static || p.effect == LAEffect::Breath)
-    {
+    if (p.effect == LAEffect::Static || p.effect == LAEffect::Breath) {
         std::vector<QString> cols;
 
         if (!ui->editZ1->text().isEmpty()) cols.push_back(ui->editZ1->text());
@@ -242,28 +277,29 @@ std::optional<LAParams> MainWindow::buildParamsFromUi() const
         if (!ui->editZ3->text().isEmpty()) cols.push_back(ui->editZ3->text());
         if (!ui->editZ4->text().isEmpty()) cols.push_back(ui->editZ4->text());
 
-        if (cols.empty()) {
-            return std::nullopt;
-        }
+        if (cols.empty()) return std::nullopt;
 
         auto normalized = ui->chkAutofill->isChecked()
-                          ? normalize4(cols)
-                          : std::array<QString,4>{cols[0], cols[1], cols[2], cols[3]};
+                        ? normalize4(cols)
+                        : std::array<QString,4>{cols[0], cols[1], cols[2], cols[3]};
 
-        for (int i=0; i<4; i++) {
+        for (int i = 0; i < 4; i++) {
             auto c = hexToRgb(normalized[i]);
             if (!c) return std::nullopt;
-            p.zones[i] = LAColor{(uint8_t)c->red(), (uint8_t)c->green(), (uint8_t)c->blue()};
+            p.zones[i] = LAColor{
+                (uint8_t)c->red(),
+                (uint8_t)c->green(),
+                (uint8_t)c->blue()
+            };
         }
     }
 
     return p;
 }
 
-//
-// ===================================================================
-// Apply button
-// ===================================================================
+// ------------------------------------------------------------------
+// APPLY
+// ------------------------------------------------------------------
 void MainWindow::onApplyClicked()
 {
     if (!deviceReady_) {
@@ -282,10 +318,9 @@ void MainWindow::onApplyClicked()
     else    setStatusErr("Failed to send command.");
 }
 
-//
-// ===================================================================
-// Turn off
-// ===================================================================
+// ------------------------------------------------------------------
+// TURN OFF
+// ------------------------------------------------------------------
 void MainWindow::onOffClicked()
 {
     if (!deviceReady_) {
@@ -299,10 +334,9 @@ void MainWindow::onOffClicked()
         setStatusErr("Failed to send off command.");
 }
 
-//
-// ===================================================================
-// Status helpers
-// ===================================================================
+// ------------------------------------------------------------------
+// STATUS BAR HELPERS
+// ------------------------------------------------------------------
 void MainWindow::setStatusOk(const QString& msg)
 {
     ui->statusbar->showMessage(msg, 3000);

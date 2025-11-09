@@ -29,6 +29,9 @@ private slots:
     void onPickZ3();
     void onPickZ4();
 
+    void autoDetectOnStartup();  //For auto detecting the device
+
+
     // Apply/Off
     void onApplyClicked();
     void onOffClicked();

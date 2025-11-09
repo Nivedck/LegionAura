@@ -20,86 +20,72 @@
    <string>LegionAura</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
+
+    <!-- TOP BAR WITH CENTERED LABEL -->
     <item>
      <layout class="QHBoxLayout" name="topBar">
+
       <item>
-       <widget class="QLabel" name="lblDevice">
+       <widget class="QLabel" name="lblDeviceLeft">
         <property name="text">
          <string>Device: (not connected)</string>
         </property>
        </widget>
       </item>
+
       <item>
-       <spacer name="spacerTop">
-        <property name="orientation">
-         <enum>Qt::Orientation::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
+       <spacer name="spacerCenter">
+        <property name="orientation"><enum>Qt::Horizontal</enum></property>
        </spacer>
       </item>
+
       <item>
-       <widget class="QPushButton" name="btnDetect">
+       <widget class="QLabel" name="lblDeviceName">
         <property name="text">
-         <string>Detect Device</string>
+         <string></string>
         </property>
        </widget>
       </item>
+
+      <item>
+       <spacer name="spacerRight">
+        <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       </spacer>
+      </item>
+
+      <item>
+       <widget class="QPushButton" name="btnDetect">
+        <property name="text"><string>Detect Device</string></property>
+       </widget>
+      </item>
+
      </layout>
     </item>
+
+    <!-- MAIN CONTENT -->
     <item>
      <layout class="QHBoxLayout" name="mainRow">
+
       <item>
        <widget class="QGroupBox" name="grpEffect">
-        <property name="title">
-         <string>Effect</string>
-        </property>
+        <property name="title"><string>Effect</string></property>
         <layout class="QVBoxLayout" name="leftColumn">
+
          <item>
           <layout class="QFormLayout" name="formEffect">
-           <item row="0" column="0">
-            <widget class="QLabel" name="lblMode">
-             <property name="text">
-              <string>Mode</string>
-             </property>
-            </widget>
-           </item>
+
+           <item row="0" column="0"><widget class="QLabel" name="lblMode"><property name="text"><string>Mode</string></property></widget></item>
            <item row="0" column="1">
             <widget class="QComboBox" name="comboEffect">
-             <item>
-              <property name="text">
-               <string>Static</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Breath</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Wave</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Hue</string>
-              </property>
-             </item>
+             <item><property name="text"><string>Static</string></property></item>
+             <item><property name="text"><string>Breath</string></property></item>
+             <item><property name="text"><string>Wave</string></property></item>
+             <item><property name="text"><string>Hue</string></property></item>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="lblSpeed">
-             <property name="text">
-              <string>Speed</string>
-             </property>
-            </widget>
-           </item>
+
+           <item row="1" column="0"><widget class="QLabel" name="lblSpeed"><property name="text"><string>Speed</string></property></widget></item>
            <item row="1" column="1">
             <widget class="QComboBox" name="comboSpeed">
              <item>
@@ -124,13 +110,8 @@
              </item>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="lblBrightness">
-             <property name="text">
-              <string>Brightness</string>
-             </property>
-            </widget>
-           </item>
+
+           <item row="2" column="0"><widget class="QLabel" name="lblBrightness"><property name="text"><string>Brightness</string></property></widget></item>
            <item row="2" column="1">
             <widget class="QComboBox" name="comboBrightness">
              <item>
@@ -145,13 +126,8 @@
              </item>
             </widget>
            </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="lblDirection">
-             <property name="text">
-              <string>Direction</string>
-             </property>
-            </widget>
-           </item>
+
+           <item row="3" column="0"><widget class="QLabel" name="lblDirection"><property name="text"><string>Direction</string></property></widget></item>
            <item row="3" column="1">
             <widget class="QComboBox" name="comboDirection">
              <item>
@@ -166,144 +142,65 @@
              </item>
             </widget>
            </item>
+
           </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="applyRow">
-           <item>
-            <widget class="QPushButton" name="btnApply">
-             <property name="text">
-              <string>Apply</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="btnOff">
-             <property name="text">
-              <string>Turn Off</string>
-             </property>
-            </widget>
-           </item>
+           <item><widget class="QPushButton" name="btnApply"><property name="text"><string>Apply</string></property></widget></item>
+           <item><widget class="QPushButton" name="btnOff"><property name="text"><string>Turn Off</string></property></widget></item>
           </layout>
          </item>
+
         </layout>
        </widget>
       </item>
+
       <item>
        <widget class="QGroupBox" name="grpZones">
-        <property name="title">
-         <string>Zones (RRGGBB)</string>
-        </property>
+        <property name="title"><string>Zones (RRGGBB)</string></property>
         <layout class="QGridLayout" name="gridZones">
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="editZ3">
-           <property name="placeholderText">
-            <string>0000ff</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="lblZ4">
-           <property name="text">
-            <string>Zone 4</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="2">
-          <widget class="QPushButton" name="btnColor4">
-           <property name="text">
-            <string>Pick…</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QPushButton" name="btnColor3">
-           <property name="text">
-            <string>Pick…</string>
-           </property>
-          </widget>
-         </item>
+
+         <item row="0" column="0"><widget class="QLabel" name="lblZ1"><property name="text"><string>Zone 1</string></property></widget></item>
+         <item row="0" column="1"><widget class="QLineEdit" name="editZ1"><property name="placeholderText"><string>ff0000</string></property></widget></item>
+         <item row="0" column="2"><widget class="QPushButton" name="btnColor1"><property name="text"><string>Pick…</string></property></widget></item>
+
+         <item row="1" column="0"><widget class="QLabel" name="lblZ2"><property name="text"><string>Zone 2</string></property></widget></item>
+         <item row="1" column="1"><widget class="QLineEdit" name="editZ2"><property name="placeholderText"><string>00ff00</string></property></widget></item>
+         <item row="1" column="2"><widget class="QPushButton" name="btnColor2"><property name="text"><string>Pick…</string></property></widget></item>
+
+         <item row="2" column="0"><widget class="QLabel" name="lblZ3"><property name="text"><string>Zone 3</string></property></widget></item>
+         <item row="2" column="1"><widget class="QLineEdit" name="editZ3"><property name="placeholderText"><string>0000ff</string></property></widget></item>
+         <item row="2" column="2"><widget class="QPushButton" name="btnColor3"><property name="text"><string>Pick…</string></property></widget></item>
+
+         <item row="3" column="0"><widget class="QLabel" name="lblZ4"><property name="text"><string>Zone 4</string></property></widget></item>
+         <item row="3" column="1"><widget class="QLineEdit" name="editZ4"><property name="placeholderText"><string>ffffff</string></property></widget></item>
+         <item row="3" column="2"><widget class="QPushButton" name="btnColor4"><property name="text"><string>Pick…</string></property></widget></item>
+
          <item row="4" column="0" colspan="3">
           <widget class="QCheckBox" name="chkAutofill">
-           <property name="text">
-            <string>Auto-fill remaining zones when fewer than 4 colors are given</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
+           <property name="text"><string>Auto-fill remaining zones when fewer than 4 colors are given</string></property>
+           <property name="checked"><bool>true</bool></property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="lblZ1">
-           <property name="text">
-            <string>Zone 1</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QPushButton" name="btnColor1">
-           <property name="text">
-            <string>Pick…</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="editZ4">
-           <property name="placeholderText">
-            <string>ffffff</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="lblZ2">
-           <property name="text">
-            <string>Zone 2</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="editZ1">
-           <property name="placeholderText">
-            <string>ff0000</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="editZ2">
-           <property name="placeholderText">
-            <string>00ff00</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="lblZ3">
-           <property name="text">
-            <string>Zone 3</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QPushButton" name="btnColor2">
-           <property name="text">
-            <string>Pick…</string>
-           </property>
-          </widget>
-         </item>
+
         </layout>
+       </widget>
+      </item>
+
+     </layout>
+    </item>
+
+    <item>
+     <layout class="QHBoxLayout" name="bottomBar">
+      <item>
+       <widget class="QLabel" name="lblHint">
+        <property name="text"><string>Tip: Static/Breath use zone colors. Wave/Hue ignore zone colors.</string></property>
        </widget>
       </item>
      </layout>
     </item>
-    <item>
-     <widget class="QLabel" name="lblHint">
-      <property name="text">
-       <string>Tip: Static/Breath use zone colors. Wave/Hue ignore zone colors.                                             Nivedck</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="bottomBar"/>
-    </item>
+
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
