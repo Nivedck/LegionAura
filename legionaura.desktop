@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=LegionAura
+GenericName=RGB Keyboard Controller
+Comment=RGB lighting controller for Lenovo LOQ, Legion, IdeaPad Gaming
+Exec=legionaura-gui
+Icon=legionaura
+Terminal=false
+Categories=Utility;Settings;HardwareSettings;
+Keywords=lenovo;rgb;keyboard;lighting;legion;loq;ideapad;

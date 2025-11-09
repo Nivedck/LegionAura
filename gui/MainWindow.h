@@ -50,7 +50,7 @@ private:
     void setStatusErr(const QString& msg);
 
     // Build LAParams from current UI state (with auto-fill if checked)
-    std.optional<LAParams> buildParamsFromUi() const;
+    std::optional<LAParams> buildParamsFromUi() const;
 
     // Normalize 1..3 colors to 4 (same rule as CLI)
     static std::array<QString,4> normalize4(const std::vector<QString>& in);

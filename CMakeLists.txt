@@ -20,3 +20,13 @@ install(FILES udev/10-legionaura.rules
 install(CODE "message(STATUS \"Reloading udev rules...\")")
 install(CODE "execute_process(COMMAND udevadm control --reload-rules)")
 install(CODE "execute_process(COMMAND udevadm trigger)")
+
+
+# ------------------------------------------------------
+# Install desktop entry + icon
+# ------------------------------------------------------
+install(FILES legionaura.desktop
+        DESTINATION share/applications)
+
+install(FILES icons/legionaura.png
+        DESTINATION share/icons/hicolor/256x256/apps)

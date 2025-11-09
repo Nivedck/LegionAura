@@ -1,4 +1,3 @@
-
 # LegionAura
 
 <p align="center">
@@ -24,6 +23,7 @@
 - [✨ Features](#-features)
 - [🎯 Why LegionAura Exists](#-why-legionaura-exists)
 - [🖥️ Supported Devices](#️-supported-devices)
+- [GUI Screenshots](#-gui-screenshots)
 - [🛠️ How It Works](#️-how-it-works)
 - [🚀 Getting Started](#-getting-started)
   - [Installation](#installation)
@@ -48,8 +48,8 @@
     * 2 colors → Z1, Z2, Z2, Z2
     * 3 colors → Z1, Z2, Z3, Z3
 * ✅ Simple CLI with human-friendly commands
+* ✅ GUI (Qt6) for easy control
 * ✅ C++17/libusb backend
-* ✅ GUI (Qt6) support is planned.
 
 ---
 
@@ -62,7 +62,7 @@ Most devices expose only raw HID/USB interfaces with undocumented control packet
 The goal is to provide:
 * a stable command-line controller
 * a reusable C++ library
-* a future GUI that mirrors Lenovo Vantage’s lighting controls
+* a GUI that mirrors Lenovo Vantage’s lighting controls
 * support for multiple Lenovo gaming models
 
 ---
@@ -93,6 +93,12 @@ A more detailed list of models includes:
 - Legion Pro/Regular (2020)
 
 If your device is not on this list but uses an ITE 8295 controller, it will likely work. You can contribute by adding your device's PID to `devices/devices.json` and submitting a pull request.
+
+---
+
+## GUI Screenshots
+
+> Add screenshot file here
 
 ---
 
@@ -135,18 +141,19 @@ First, you need to install the required build tools and libraries.
 *   **A C++17 compatible compiler:** `gcc` or `clang`
 *   **CMake:** Version 3.16 or later
 *   **libusb:** Version 1.0 or later
+*   **Qt6:** For the GUI
 *   **Git:** To clone the repository
 
 On **Debian/Ubuntu-based** distributions, you can install them with:
 ```bash
 sudo apt update
-sudo apt install build-essential cmake libusb-1.0-0-dev git
+sudo apt install build-essential cmake libusb-1.0-0-dev qt6-base-dev git
 ```
 
 On **Fedora/RHEL-based** distributions, you can install them with:
 ```bash
 sudo dnf groupinstall "Development Tools"
-sudo dnf install cmake libusb1-devel git
+sudo dnf install cmake libusb1-devel qt6-qtbase-devel git
 ```
 
 **2. Clone the Repository**
@@ -166,7 +173,7 @@ make
 sudo make install
 ```
 
-This will compile the project and install the `legionaura` executable to `/usr/local/bin`, making it available system-wide.
+This will compile the project and install the `legionaura` executable to `/usr/local/bin` and the GUI to `/usr/local/bin/legionaura-gui`, making it available system-wide.
 
 **4. Set Up udev Rules**
 
@@ -183,6 +190,8 @@ After this, unplug and reconnect your keyboard (or reboot your system) for the c
 ---
 
 ## 💡 Usage
+
+### CLI
 
 ```
 Usage:
@@ -210,6 +219,10 @@ Usage:
   ```bash
   ./build/cli/legionaura wave ltr --speed 2
   ```
+
+### GUI
+
+You can also use the GUI for easy control. Launch it from your application menu or by running `legionaura-gui` in your terminal.
 
 ---
 
