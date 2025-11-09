@@ -1,10 +1,14 @@
+// /LegionAura/lib/legionaura.cpp
 
 #include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <sstream>
 #include <regex>
+#include <string>
+
 #include "legionaura.h"
+#include <iostream>
 
 static uint8_t clampByte(int v){ return (uint8_t)std::max(0,std::min(255,v)); }
 
@@ -14,19 +18,45 @@ LegionAura::~LegionAura(){ close(); }
 
 bool LegionAura::open() {
     if (ctx_) return true;
-    if (libusb_init(&ctx_) != 0) return false;
+
+    if (libusb_init(&ctx_) != 0) {
+        std::cerr << "libusb initialization failed.\n";
+        return false;
+    }
 
     dev_ = libusb_open_device_with_vid_pid(ctx_, vid_, pid_);
     if (!dev_) {
+
+        // Permission hint:
+        std::cerr <<
+            "Device open failed.\n"
+            "Permission denied. The keyboard device cannot be accessed.\n\n"
+            "Solutions:\n"
+            "  1) Run the command with sudo:\n"
+            "       sudo legionaura <command>\n\n"
+            "  2) Or install the udev rules for non-root access:\n"
+            "       sudo cp udev/10-legionaura.rules /etc/udev/rules.d/\n"
+            "       sudo udevadm control --reload-rules\n"
+            "       sudo udevadm trigger\n\n"
+            "After installing the rules, unplug and reconnect the keyboard.\n";
+
         libusb_exit(ctx_);
         ctx_ = nullptr;
         return false;
     }
 
+    // Permission OK, now try interface
     if (libusb_kernel_driver_active(dev_, iface_) == 1)
         libusb_detach_kernel_driver(dev_, iface_);
 
-    if (libusb_claim_interface(dev_, iface_) != 0) {
+    int claim = libusb_claim_interface(dev_, iface_);
+    if (claim != 0) {
+        std::cerr <<
+            "Failed to claim USB interface. This usually means:\n"
+            "  • Another program is using the device\n"
+            "  • You need sudo\n"
+            "  • Or udev rules are not applied\n";
+
         libusb_close(dev_);
         dev_ = nullptr;
         libusb_exit(ctx_);
@@ -36,6 +66,7 @@ bool LegionAura::open() {
 
     return true;
 }
+
 
 void LegionAura::close() {
     if (!ctx_) return;
@@ -87,7 +118,8 @@ bool LegionAura::autoDetect() {
         createdCtx = true;
     }
 
-    auto devices = loadSupportedDevices("devices/devices.json");
+    auto devices = loadSupportedDevices(std::string(PROJECT_SOURCE_DIR) + "/devices/devices.json");
+
     if (devices.empty()) {
         if (createdCtx) { libusb_exit(ctx_); ctx_ = nullptr; }
         return false;
