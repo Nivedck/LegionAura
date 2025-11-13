@@ -1,83 +1,76 @@
-# LegionAura
+## LegionAura
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/nivedck/LegionAura/main/assets/logo.png" alt="LegionAura Logo" width="200"/>
+[<img src="https://img.shields.io/github/license/nivedck/LegionAura" alt="License">](https://github.com/nivedck/LegionAura/blob/main/LICENSE)
+[<img src="https://img.shields.io/github/issues/nivedck/LegionAura" alt="Issues">](https://github.com/nivedck/LegionAura/issues)
+[<img src="https://img.shields.io/github/stars/nivedck/LegionAura" alt="Stars">](https://github.com/nivedck/LegionAura/stargazers)
+
+<p align="left">
+  <img src="https://raw.githubusercontent.com/nivedck/LegionAura/main/assets/logo.png" alt="LegionAura Logo" width="200"/>
 </p>
 
-<p align="center">
-  <strong>An open-source RGB keyboard lighting controller for Lenovo LOQ, Legion, and IdeaPad Gaming laptops on Linux.</strong>
-</p>
+**An open-source RGB keyboard lighting controller for Lenovo LOQ, Legion, and IdeaPad Gaming laptops on Linux.**
 
-<p align="center">
-  <a href="https://github.com/nivedck/LegionAura/blob/main/LICENSE"><img src="https://img.shields.io/github/license/nivedck/LegionAura" alt="License"></a>
-  <a href="https://github.com/nivedck/LegionAura/issues"><img src="https://img.shields.io/github/issues/nivedck/LegionAura" alt="Issues"></a>
-  <a href="https://github.com/nivedck/LegionAura/stargazers"><img src="https://img.shields.io/github/stars/nivedck/LegionAura" alt="Stars"></a>
-</p>
-
-> LegionAura provides full control over the built-in 4-zone RGB ITE keyboard without requiring Lenovo Vantage or Windows. It is lightweight, fast, and designed to work entirely through USB HID control transfers, replicating the behavior of Lenovo’s firmware-level lighting commands.
+LegionAura provides full control over the built-in 4-zone RGB ITE keyboard without requiring Lenovo Vantage or Windows. It is lightweight, fast, and designed to work entirely through USB HID control transfers, replicating the behavior of Lenovo’s firmware-level lighting commands.
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [✨ Features](#-features)
-- [🎯 Why LegionAura Exists](#-why-legionaura-exists)
-- [🖥️ Supported Devices](#️-supported-devices)
-- [GUI Screenshots](#-gui-screenshots)
-- [🛠️ How It Works](#️-how-it-works)
-- [🚀 Getting Started](#-getting-started)
-  - [Installation](#installation)
-  - [Building from Source](#building-from-source)
-- [💡 Usage](#-usage)
-- [🤝 Contributing](#-contributing)
-- [📜 License](#-license)
-
----
-
-## ✨ Features
-
-* ✅ 4-zone RGB lighting control
-* ✅ Static, Breath, Wave, and Hue effects
-* ✅ Per-zone custom colors (HEX RRGGBB)
-* ✅ Animation speed control (1–4)
-* ✅ Brightness control (1–2)
-* ✅ Wave direction (LTR / RTL)
-* ✅ Brightness-only mode
-* ✅ Safe color auto-fill
-    * 1 color → applies to all 4 zones
-    * 2 colors → Z1, Z2, Z2, Z2
-    * 3 colors → Z1, Z2, Z3, Z3
-* ✅ Simple CLI with human-friendly commands
-* ✅ GUI (Qt6) for easy control
-* ✅ C++17/libusb backend
+- [Features](#features)
+- [Why LegionAura Exists](#why-legionaura-exists)
+- [Supported Devices](#supported-devices)
+- [How It Works](#how-it-works)
+- [Getting Started](#getting-started)
+  - [Installation from AUR (Arch Linux)](#installation-from-aur-arch-linux)
+  - [Build from Source (Any Linux Distribution)](#build-from-source-any-linux-distribution)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [Disclaimer](#disclaimer)
+- [License](#license)
 
 ---
 
-## 🎯 Why LegionAura Exists
+## Features
+
+* 4-zone RGB lighting control
+* Static, Breath, Wave, and Hue effects
+* Per-zone custom colors (HEX RRGGBB)
+* Animation speed control (1–4)
+* Brightness control (1–2)
+* Wave direction (LTR / RTL)
+* Brightness-only mode
+* Safe color auto-fill (e.g., 1 color applies to all 4 zones; 3 colors applies to Z1, Z2, Z3, Z3)
+* Simple CLI with human-friendly commands
+* GUI (Qt6) for easy control
+* C++17/libusb backend
+
+---
+
+## Why LegionAura Exists
 
 Lenovo does not officially provide Linux support for multi-zone RGB keyboard lighting on LOQ/Legion/IdeaPad gaming laptops.
 
 Most devices expose only raw HID/USB interfaces with undocumented control packets. LegionAura implements a clean, fully-open library and CLI based on reverse-engineering and community research.
 
 The goal is to provide:
-* a stable command-line controller
-* a reusable C++ library
-* a GUI that mirrors Lenovo Vantage’s lighting controls
-* support for multiple Lenovo gaming models
+* A stable command-line controller
+* A reusable C++ library
+* A GUI that mirrors Lenovo Vantage’s lighting controls
+* Support for multiple Lenovo gaming models
 
 ---
 
-## 🖥️ Supported Devices
+## Supported Devices
 
 All laptops using the **ITE 8295 RGB controller** over USB HID are supported.
 
 While the tool should be compatible with a wide range of Lenovo gaming laptops, it has been tested and confirmed to work with the following models:
 
-*   **Legion Series (2020-2024)**
-    *   Legion Pro
-    *   Legion Regular/Slim
-*   **LOQ Series (2023-2024)**
-*   **IdeaPad Gaming Series (2021-2022)**
+* **Legion Series (2020-2024)**
+    * Legion Pro
+    * Legion Regular/Slim
+* **LOQ Series (2023-2024)**
+* **IdeaPad Gaming Series (2021-2022)**
 
 A more detailed list of models includes:
 - Legion Pro (2024)
@@ -96,23 +89,17 @@ If your device is not on this list but uses an ITE 8295 controller, it will like
 
 ---
 
-## GUI Screenshots
-
-> Add screenshot file here
-
----
-
-## 🛠️ How It Works
+## How It Works
 
 LegionAura communicates with the keyboard’s ITE controller using a single USB `SET_REPORT` control transfer.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 There are two ways to install LegionAura: through an AUR helper (for Arch-based distributions) or by building it manually.
 
-### ✅ Method 1 — Install from the AUR (Arch Linux)
+### Installation from AUR (Arch Linux)
 
 If you are on Arch Linux or an Arch-based distribution, you can install LegionAura from the [Arch User Repository (AUR)](https://aur.archlinux.org/packages/legionaura-git).
 
