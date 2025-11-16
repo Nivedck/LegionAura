@@ -176,6 +176,115 @@ After this, unplug and reconnect your keyboard (or reboot your system) for the c
 
 ---
 
+## 🔧 Troubleshooting
+
+If LegionAura fails to work after installation, follow these diagnostic steps:
+
+### 1. Check if your device is recognized
+
+Run:
+```bash
+lsusb | grep 048d
+```
+
+You should see a line like:
+```
+Bus 001 Device 005: ID 048d:c975 ITE Tech. ITE Device(...)
+```
+
+If you see nothing, your keyboard may not be connected or recognized by the system.
+
+**What to do:**
+- Ensure the keyboard is plugged in or powered on
+- Try a different USB port
+- Check `lsusb -v` for more details
+
+### 2. Verify the device PID is in the udev rule
+
+Check your device's product ID (PID) from the `lsusb` output above (the last 4 hex digits, e.g., `c975`).
+
+Verify it's listed in `/etc/udev/rules.d/10-legionaura.rules`:
+```bash
+grep "c975" /etc/udev/rules.d/10-legionaura.rules
+```
+
+If your PID is **not** in the rule, you have two options:
+- **Add it manually:** Edit the file and add a line like:
+  ```bash
+  SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c975", MODE="0666"
+  ```
+  Then reload rules (see step 4 below) and [open an issue](https://github.com/nivedck/LegionAura/issues) so we can add it to the repository.
+
+- **Or use the generic catch-all rule** (less safe but works for any ITE device):
+  ```bash
+  sudo sed -i 's/^# SUBSYSTEM=="usb", ATTR{idVendor}=="048d", MODE="0666"/SUBSYSTEM=="usb", ATTR{idVendor}=="048d", MODE="0666"/' /etc/udev/rules.d/10-legionaura.rules
+  ```
+
+### 3. Check device permissions
+
+Find your device's bus and device numbers from `lsusb` (e.g., `Bus 001 Device 005`), then run:
+```bash
+ls -l /dev/bus/usb/001/005
+```
+
+You should see `rw` permissions for your user. Example of correct permissions:
+```
+crw-rw-rw- 1 root root 189, 4 Nov 16 10:30 /dev/bus/usb/001/005
+```
+
+If permissions show `rw----` or `r--r--r--`, the udev rule is not applied.
+
+### 4. Reload and trigger udev rules
+
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+Then **unplug and replug your keyboard** (or reboot). Permissions should update automatically.
+
+### 5. Monitor udev events (optional)
+
+To see live udev activity while you plug/unplug the keyboard:
+```bash
+sudo udevadm monitor --udev &
+# Then unplug and replug your keyboard
+```
+
+You should see events like:
+```
+UDEV  [xxx] add      /devices/pci0000:00/.../usb1/1-1 (usb)
+```
+
+### 6. Test as root (to confirm device-level functionality)
+
+If udev permissions are still problematic, test with `sudo` to rule out permission issues:
+```bash
+sudo legionaura --version
+sudo legionaura static ff0000
+```
+
+If this works but non-root doesn't, the issue is definitely permissions (udev rule).
+
+### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `Device open failed` when run as non-root | Udev rule not applied or PID mismatch | Check steps 2–4 above |
+| `Device open failed` even with `sudo` | Device not found by libusb | Check step 1; ensure keyboard is connected |
+| `Failed to claim USB interface` | Another program is using the device | Close other RGB software; check `lsof /dev/bus/usb/...` |
+| Udev rule applied but still no access | User not in required group (if using `GROUP="plugdev"`) | Run `groups` to check; add user with `sudo usermod -aG plugdev $USER` and re-login |
+
+### Still not working?
+
+Please [open an issue](https://github.com/nivedck/LegionAura/issues) with:
+1. Output of `lsusb | grep 048d`
+2. Output of `cat /etc/udev/rules.d/10-legionaura.rules`
+3. Output of `ls -l /dev/bus/usb/BUS/DEV` (replace `BUS`/`DEV` with your numbers)
+4. Whether `sudo legionaura` works
+
+---
+
 ## 💡 Usage
 
 ### CLI
