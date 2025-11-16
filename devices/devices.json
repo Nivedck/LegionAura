@@ -11,7 +11,8 @@
 
         { "year": 2022, "name": "Legion Pro/Regular",  "pid": "0xC975" },
         { "year": 2022, "name": "IdeaPad Gaming",      "pid": "0xC973" },
-
+        { "year": 2022, "name": "Legion 7 (16ITHg6)",  "pid": "0xC968" },  
+        
         { "year": 2021, "name": "Legion Pro/Regular",  "pid": "0xC965" },
         { "year": 2021, "name": "IdeaPad Gaming",      "pid": "0xC963" },
 

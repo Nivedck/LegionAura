@@ -1,5 +1,5 @@
-# ITE keyboard controllers (Lenovo LOQ/Legion/IdeaPad Gaming)
-# All known 4-zone RGB keyboard PIDs (2020-2024)
+# ITE keyboard controllers (Lenovo LOQ / Legion / IdeaPad Gaming)
+# All known 4-zone RGB keyboard PIDs (2020–2024 + new reports)
 
 # 2024 models
 SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c995", MODE="0666"
@@ -11,9 +11,10 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c985", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c984", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c983", MODE="0666"
 
-# 2022 models
+# 2022 models (updated)
 SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c975", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c973", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c968", MODE="0666"   # NEW (Legion 7)
 
 # 2021 models
 SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c965", MODE="0666"
@@ -22,5 +23,5 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c963", MODE="0666"
 # 2020 models
 SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c955", MODE="0666"
 
-# Generic ITE catch-all (optional; looser - uncomment if needed)
+# Generic ITE catch-all (optional; looser)
 # SUBSYSTEM=="usb", ATTR{idVendor}=="048d", MODE="0666"

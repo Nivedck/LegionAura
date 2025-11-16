@@ -21,7 +21,8 @@ static QString resolveDeviceName(uint16_t pid)
     static const std::map<uint16_t, QString> names = {
         {0xC993, "Lenovo LOQ"},
         {0xC996, "Lenovo Legion"},
-        {0xC963, "Lenovo IdeaPad Gaming"}
+        {0xC963, "Lenovo IdeaPad Gaming"},
+        {0xC968, "Lenovo Legion 7 (2022)"}
     };
 
     auto it = names.find(pid);
