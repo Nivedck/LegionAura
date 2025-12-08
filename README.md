@@ -5,7 +5,7 @@
 [<img src="https://img.shields.io/github/stars/nivedck/LegionAura" alt="Stars">](https://github.com/nivedck/LegionAura/stargazers)
 
 <p align="left">
-  <img src="https://raw.githubusercontent.com/nivedck/LegionAura/main/assets/logo.png" alt="LegionAura Logo" width="200"/>
+  <img src="https://raw.githubusercontent.com/nivedck/LegionAura/main/icons/legionaura.png" alt="LegionAura Logo" width="300"/>
 </p>
 
 **An open-source RGB keyboard lighting controller for Lenovo LOQ, Legion, and IdeaPad Gaming laptops on Linux.**
@@ -40,7 +40,7 @@ LegionAura provides full control over the built-in 4-zone RGB ITE keyboard witho
 * Wave direction (LTR / RTL)
 * Brightness-only mode
 * Safe color auto-fill (e.g., 1 color applies to all 4 zones; 3 colors applies to Z1, Z2, Z3, Z3)
-* Simple CLI with human-friendly commands
+* Simple CLI with friendly commands
 * GUI (Qt6) for easy control
 * C++17/libusb backend
 
@@ -73,8 +73,7 @@ While the tool should be compatible with a wide range of Lenovo gaming laptops, 
 * **IdeaPad Gaming Series (2021-2022)**
 
 A more detailed list of models includes:
-- Legion Pro (2024)
-- Legion Regular/Slim (2024)
+
 - Lenovo LOQ (2024)
 - Legion Pro (2023)
 - Legion Slim (2023)
@@ -117,7 +116,7 @@ paru -S legionaura
 
 The package will automatically handle dependencies, build the project, and install it to your system.
 
-### ✅ Method 2 — Build Manually (Any Linux Distribution)
+### Method 2 — Build Manually (Any Linux Distribution)
 
 If you are not on an Arch-based distribution or prefer to build the project yourself, follow these steps.
 
@@ -285,7 +284,7 @@ Please [open an issue](https://github.com/nivedck/LegionAura/issues) with:
 
 ---
 
-## 💡 Usage
+##  Usage
 
 ### CLI
 
@@ -322,7 +321,7 @@ You can also use the GUI for easy control. Launch it from your application menu 
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! If you have a feature request, bug report, or want to contribute to the code, please open an issue or a pull request.
 
