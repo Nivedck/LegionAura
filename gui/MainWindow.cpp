@@ -23,7 +23,7 @@ static QString resolveDeviceName(uint16_t pid)
         {0xC993, "Lenovo LOQ"},
         {0xC996, "Lenovo Legion"},
         {0xC963, "Lenovo IdeaPad Gaming"}
-        }
+        
     };
 
     auto it = names.find(pid);
