@@ -1,4 +1,5 @@
 // /LegionAura/gui/MainWindow.cpp
+//Nivedck
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
@@ -11,14 +12,14 @@
 #include <QPalette>
 #include <QStyleFactory>
 #include <QTimer>
-#include <map>
+#include <unordered_map>
 
 // ------------------------------------------------------------------
 // Device name resolver
 // ------------------------------------------------------------------
 static QString resolveDeviceName(uint16_t pid)
 {
-    static const std::map<uint16_t, QString> names = {
+    static const std::unordered_map<uint16_t, QString> names = {
         {0xC993, "Lenovo LOQ"},
         {0xC996, "Lenovo Legion"},
         {0xC963, "Lenovo IdeaPad Gaming"},
@@ -44,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Auto-detect device shortly after app start
     QTimer::singleShot(100, this, &MainWindow::autoDetectOnStartup);
 
-    // Dark UI theme
+    
     qApp->setStyle(QStyleFactory::create("Fusion"));
     QPalette dark;
     dark.setColor(QPalette::Window, QColor(30,30,30));
@@ -58,7 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
     dark.setColor(QPalette::HighlightedText, Qt::black);
     qApp->setPalette(dark);
 
-    // UI Signals
+    
     connect(ui->btnDetect, &QPushButton::clicked, this, &MainWindow::onDetectClicked);
     connect(ui->btnApply,  &QPushButton::clicked, this, &MainWindow::onApplyClicked);
     connect(ui->btnOff,    &QPushButton::clicked, this, &MainWindow::onOffClicked);
