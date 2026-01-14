@@ -7,6 +7,8 @@ target_include_directories(legionaura_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_definitions(legionaura_lib PUBLIC PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
+target_compile_definitions(legionaura_lib PUBLIC LEGIONAURA_DEVICES_JSON_PATH=\"${CMAKE_INSTALL_FULL_DATAROOTDIR}/legionaura/devices.json\")
+
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBUSB REQUIRED libusb-1.0)

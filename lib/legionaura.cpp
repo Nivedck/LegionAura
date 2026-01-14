@@ -2,7 +2,10 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
+#include <filesystem>
 #include <fstream>
+#include <optional>
 #include <sstream>
 #include <regex>
 #include <string>
@@ -11,6 +14,99 @@
 #include <iostream>
 
 static uint8_t clampByte(int v){ return (uint8_t)std::max(0,std::min(255,v)); }
+
+namespace {
+constexpr uint16_t kLenovoIteVid = 0x048D;
+
+std::vector<std::pair<uint16_t, uint16_t>> builtInSupportedDevices()
+{
+    // This project targets Lenovo laptops with the ITE 8295 RGB controller.
+    // The set of known PIDs is small and hardware-dependent; keep a built-in
+    // fallback so packaged installs still work if devices.json isn't found.
+    static const uint16_t pids[] = {
+        0xC995, 0xC994, 0xC993,
+        0xC985, 0xC984, 0xC983,
+        0xC975, 0xC973,
+        0xC965, 0xC963,
+        0xC955,
+    };
+
+    std::vector<std::pair<uint16_t, uint16_t>> list;
+    list.reserve(sizeof(pids) / sizeof(pids[0]));
+    for (auto pid : pids) list.emplace_back(kLenovoIteVid, pid);
+    return list;
+}
+
+std::vector<std::string> splitColonList(const char* s)
+{
+    std::vector<std::string> parts;
+    if (!s || !*s) return parts;
+
+    std::string cur;
+    for (const char* p = s; ; ++p) {
+        if (*p == ':' || *p == '\0') {
+            if (!cur.empty()) parts.push_back(cur);
+            cur.clear();
+            if (*p == '\0') break;
+        } else {
+            cur.push_back(*p);
+        }
+    }
+    return parts;
+}
+
+std::optional<std::string> resolveDevicesJsonPath()
+{
+    namespace fs = std::filesystem;
+
+    auto existsFile = [&](const fs::path& p) -> bool {
+        std::error_code ec;
+        return fs::exists(p, ec) && fs::is_regular_file(p, ec);
+    };
+
+    // 1) Explicit override
+    if (const char* env = std::getenv("LEGIONAURA_DEVICES_JSON")) {
+        fs::path p(env);
+        if (existsFile(p)) return p.string();
+    }
+
+    // 2) Compiled-in install location
+#ifdef LEGIONAURA_DEVICES_JSON_PATH
+    {
+        fs::path p(LEGIONAURA_DEVICES_JSON_PATH);
+        if (existsFile(p)) return p.string();
+    }
+#endif
+
+    // 3) XDG data locations
+    {
+        if (const char* xdgHome = std::getenv("XDG_DATA_HOME")) {
+            fs::path p = fs::path(xdgHome) / "legionaura" / "devices.json";
+            if (existsFile(p)) return p.string();
+        } else if (const char* home = std::getenv("HOME")) {
+            fs::path p = fs::path(home) / ".local" / "share" / "legionaura" / "devices.json";
+            if (existsFile(p)) return p.string();
+        }
+
+        const char* xdgDirs = std::getenv("XDG_DATA_DIRS");
+        if (!xdgDirs || !*xdgDirs) xdgDirs = "/usr/local/share:/usr/share";
+        for (const auto& dir : splitColonList(xdgDirs)) {
+            fs::path p = fs::path(dir) / "legionaura" / "devices.json";
+            if (existsFile(p)) return p.string();
+        }
+    }
+
+    // 4) Dev-tree fallback
+#ifdef PROJECT_SOURCE_DIR
+    {
+        fs::path p = fs::path(PROJECT_SOURCE_DIR) / "devices" / "devices.json";
+        if (existsFile(p)) return p.string();
+    }
+#endif
+
+    return std::nullopt;
+}
+} // namespace
 
 
 LegionAura::LegionAura(uint16_t vid, uint16_t pid) : vid_(vid), pid_(pid) {}
@@ -100,12 +196,16 @@ LegionAura::loadSupportedDevices(const std::string& path)
     auto begin = std::sregex_iterator(content.begin(), content.end(), pidRegex);
     auto end   = std::sregex_iterator();
 
-    const uint16_t VID = 0x048D;
+    const uint16_t VID = kLenovoIteVid;
 
     for (auto it = begin; it != end; ++it) {
         std::string hex = (*it)[1];
-        uint16_t pid = (uint16_t)std::stoi(hex, nullptr, 16);
-        list.emplace_back(VID, pid);
+        try {
+            uint16_t pid = (uint16_t)std::stoi(hex, nullptr, 16);
+            list.emplace_back(VID, pid);
+        } catch (...) {
+            // Ignore malformed entries
+        }
     }
 
     return list;
@@ -118,11 +218,12 @@ bool LegionAura::autoDetect() {
         createdCtx = true;
     }
 
-    auto devices = loadSupportedDevices(std::string(PROJECT_SOURCE_DIR) + "/devices/devices.json");
-
+    std::vector<std::pair<uint16_t, uint16_t>> devices;
+    if (auto path = resolveDevicesJsonPath()) {
+        devices = loadSupportedDevices(*path);
+    }
     if (devices.empty()) {
-        if (createdCtx) { libusb_exit(ctx_); ctx_ = nullptr; }
-        return false;
+        devices = builtInSupportedDevices();
     }
 
     for (auto& vp : devices) {
