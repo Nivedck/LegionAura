@@ -1,338 +1,199 @@
 ## LegionAura
 
-[<img src="https://img.shields.io/github/license/nivedck/LegionAura" alt="License">](https://github.com/nivedck/LegionAura/blob/main/LICENSE)
-[<img src="https://img.shields.io/github/issues/nivedck/LegionAura" alt="Issues">](https://github.com/nivedck/LegionAura/issues)
-[<img src="https://img.shields.io/github/stars/nivedck/LegionAura" alt="Stars">](https://github.com/nivedck/LegionAura/stargazers)
+LegionAura is a lightweight RGB keyboard lighting controller for Lenovo LOQ, Legion, and IdeaPad Gaming laptops on Linux.
 
-<p align="left">
-  <img src="https://raw.githubusercontent.com/nivedck/LegionAura/main/icons/legionaura.png" alt="LegionAura Logo" width="300"/>
-</p>
+It controls the built-in **4-zone ITE RGB keyboard controller** over USB (HID `SET_REPORT`) and provides:
+- A C++ library (`legionaura_lib`)
+- A command-line tool (`legionaura`)
+- A Qt6 GUI (`legionaura-gui`)
 
-**An open-source RGB keyboard lighting controller for Lenovo LOQ, Legion, and IdeaPad Gaming laptops on Linux.**
-
-LegionAura provides full control over the built-in 4-zone RGB ITE keyboard without requiring Lenovo Vantage or Windows. It is lightweight, fast, and designed to work entirely through USB HID control transfers, replicating the behavior of Lenovo’s firmware-level lighting commands.
-
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Why LegionAura Exists](#why-legionaura-exists)
-- [Supported Devices](#supported-devices)
-- [How It Works](#how-it-works)
-- [Getting Started](#getting-started)
-  - [Installation from AUR (Arch Linux)](#installation-from-aur-arch-linux)
-  - [Build from Source (Any Linux Distribution)](#build-from-source-any-linux-distribution)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [Disclaimer](#disclaimer)
-- [License](#license)
-
----
+This project is not affiliated with Lenovo.
 
 ## Features
 
-* 4-zone RGB lighting control
-* Static, Breath, Wave, and Hue effects
-* Per-zone custom colors (HEX RRGGBB)
-* Animation speed control (1–4)
-* Brightness control (1–2)
-* Wave direction (LTR / RTL)
-* Brightness-only mode
-* Safe color auto-fill (e.g., 1 color applies to all 4 zones; 3 colors applies to Z1, Z2, Z3, Z3)
-* Simple CLI with friendly commands
-* GUI (Qt6) for easy control
-* C++17/libusb backend
+- 4-zone RGB lighting
+- Effects: Static, Breath, Wave, Hue
+- Per-zone colors (hex `RRGGBB`)
+- Speed control (1-4)
+- Brightness control (1-2)
+- Wave direction (LTR/RTL)
+- Auto-detects supported Lenovo ITE keyboard PIDs
 
----
+## Supported devices
 
-## Why LegionAura Exists
+LegionAura targets Lenovo laptops using the ITE RGB keyboard controller (VID `048d`) with known keyboard PIDs.
 
-Lenovo does not officially provide Linux support for multi-zone RGB keyboard lighting on LOQ/Legion/IdeaPad gaming laptops.
+The PID list is stored in `devices/devices.json`. If your device is not listed but uses the same ITE controller, adding your PID there is usually enough.
 
-Most devices expose only raw HID/USB interfaces with undocumented control packets. LegionAura implements a clean, fully-open library and CLI based on reverse-engineering and community research.
+## Installation
 
-The goal is to provide:
-* A stable command-line controller
-* A reusable C++ library
-* A GUI that mirrors Lenovo Vantage’s lighting controls
-* Support for multiple Lenovo gaming models
+### Arch-based distributions (AUR)
 
----
+The AUR package name is `legionaura`.
 
-## Supported Devices
-
-All laptops using the **ITE 8295 RGB controller** over USB HID are supported.
-
-While the tool should be compatible with a wide range of Lenovo gaming laptops, it has been tested and confirmed to work with the following models:
-
-* **Legion Series (2020-2024)**
-    * Legion Pro
-    * Legion Regular/Slim
-* **LOQ Series (2023-2024)**
-* **IdeaPad Gaming Series (2021-2022)**
-
-A more detailed list of models includes:
-
-- Lenovo LOQ (2024)
-- Legion Pro (2023)
-- Legion Slim (2023)
-- Lenovo LOQ (2023)
-- Legion Pro/Regular (2022)
-- IdeaPad Gaming (2022)
-- Legion Pro/Regular (2021)
-- IdeaPad Gaming (2021)
-- Legion Pro/Regular (2020)
-
-If your device is not on this list but uses an ITE 8295 controller, it will likely work. You can contribute by adding your device's PID to `devices/devices.json` and submitting a pull request.
-
----
-
-## How It Works
-
-LegionAura communicates with the keyboard’s ITE controller using a single USB `SET_REPORT` control transfer.
-
----
-
-## Getting Started
-
-There are two ways to install LegionAura: through an AUR helper (for Arch-based distributions) or by building it manually.
-
-### Installation from AUR (Arch Linux)
-
-If you are on Arch Linux or an Arch-based distribution, you can install LegionAura from the [Arch User Repository (AUR)](https://aur.archlinux.org/packages/legionaura-git).
-
-Use your favorite AUR helper.
-
-**Using `yay`:**
+Using `yay`:
 ```bash
 yay -S legionaura
 ```
 
-**Using `paru`:**
+Using `paru`:
 ```bash
 paru -S legionaura
 ```
 
-The package will automatically handle dependencies, build the project, and install it to your system.
+### Build from source (other distributions)
 
-### Method 2 — Build Manually (Any Linux Distribution)
+Dependencies:
+- C++17 compiler, CMake (>= 3.16)
+- `libusb-1.0`
+- Qt6 Widgets (for GUI)
 
-If you are not on an Arch-based distribution or prefer to build the project yourself, follow these steps.
+Examples:
 
-**1. Install Dependencies**
-
-First, you need to install the required build tools and libraries.
-
-*   **A C++17 compatible compiler:** `gcc` or `clang`
-*   **CMake:** Version 3.16 or later
-*   **libusb:** Version 1.0 or later
-*   **Qt6:** For the GUI
-*   **Git:** To clone the repository
-
-On **Debian/Ubuntu-based** distributions, you can install them with:
+Debian/Ubuntu:
 ```bash
 sudo apt update
 sudo apt install build-essential cmake libusb-1.0-0-dev qt6-base-dev git
 ```
 
-On **Fedora/RHEL-based** distributions, you can install them with:
+Fedora:
 ```bash
 sudo dnf groupinstall "Development Tools"
 sudo dnf install cmake libusb1-devel qt6-qtbase-devel git
 ```
 
-**2. Clone the Repository**
-
+Build and install:
 ```bash
 git clone https://github.com/nivedck/LegionAura.git
 cd LegionAura
+
+cmake -S . -B build
+cmake --build build -j
+sudo cmake --install build
 ```
 
-**3. Build and Install**
+Installed files (typical):
+- `legionaura` and `legionaura-gui` in `/usr/local/bin` (or your CMake prefix)
+- Desktop entry in `/usr/share/applications`
+- Icon in `/usr/share/icons/hicolor/256x256/apps`
+- Device list in `/usr/share/legionaura/devices.json`
+- udev rule in `/usr/lib/udev/rules.d/10-legionaura.rules`
 
+### udev rules (recommended)
+
+To run as a normal user, you need permission to access the USB device.
+
+If you installed with `cmake --install`, the udev rule file is installed automatically. Reload udev rules:
 ```bash
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
-```
-
-This will compile the project and install the `legionaura` executable to `/usr/local/bin` and the GUI to `/usr/local/bin/legionaura-gui`, making it available system-wide.
-
-**4. Set Up udev Rules**
-
-To allow LegionAura to access the keyboard without running it as root, you need to install a `udev` rule. This gives your user account permission to control the device.
-
-```bash
-sudo cp ../udev/10-legionaura.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
-After this, unplug and reconnect your keyboard (or reboot your system) for the changes to take full effect. You can now run `legionaura` as a regular user.
+Then unplug/replug the laptop keyboard device (or reboot).
 
----
+## Usage
 
-## 🔧 Troubleshooting
+### CLI
 
-If LegionAura fails to work after installation, follow these diagnostic steps:
+```text
+legionaura static <colors...> [--brightness 1|2]
+legionaura breath <colors...> [--speed 1..4] [--brightness 1|2]
+legionaura wave <ltr|rtl> [--speed 1..4] [--brightness 1|2]
+legionaura hue [--speed 1..4] [--brightness 1|2]
+legionaura off
+legionaura --brightness 1|2
+```
 
-### 1. Check if your device is recognized
+Examples:
+```bash
+legionaura static ff0000
+legionaura breath ff0000 00ff00 0000ff --speed 2
+legionaura wave ltr --speed 2
+legionaura off
+```
 
-Run:
+### GUI
+
+Launch from the application menu or run:
+```bash
+legionaura-gui
+```
+
+## Applying settings on login
+
+If you want a fixed color/effect at every login, create a user systemd service.
+
+Example (`~/.config/systemd/user/legionaura.service`):
+```ini
+[Unit]
+Description=Apply LegionAura keyboard lighting
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/legionaura static ff0000
+
+[Install]
+WantedBy=default.target
+```
+
+Enable it:
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now legionaura.service
+```
+
+Adjust the path to `legionaura` if you installed to a different prefix.
+
+## Troubleshooting
+
+### 1) Confirm the device is visible
 ```bash
 lsusb | grep 048d
 ```
 
-You should see a line like:
-```
-Bus 001 Device 005: ID 048d:c975 ITE Tech. ITE Device(...)
-```
+You should see at least one `048d:xxxx` entry for the keyboard controller.
 
-If you see nothing, your keyboard may not be connected or recognized by the system.
-
-**What to do:**
-- Ensure the keyboard is plugged in or powered on
-- Try a different USB port
-- Check `lsusb -v` for more details
-
-### 2. Verify the device PID is in the udev rule
-
-Check your device's product ID (PID) from the `lsusb` output above (the last 4 hex digits, e.g., `c975`).
-
-Verify it's listed in `/etc/udev/rules.d/10-legionaura.rules`:
+### 2) Permissions
+Check permissions for the matching USB node (BUS/DEV come from `lsusb` output):
 ```bash
-grep "c975" /etc/udev/rules.d/10-legionaura.rules
+ls -l /dev/bus/usb/BUS/DEV
 ```
 
-If your PID is **not** in the rule, you have two options:
-- **Add it manually:** Edit the file and add a line like:
-  ```bash
-  SUBSYSTEM=="usb", ATTR{idVendor}=="048d", ATTR{idProduct}=="c975", MODE="0666"
-  ```
-  Then reload rules (see step 4 below) and [open an issue](https://github.com/nivedck/LegionAura/issues) so we can add it to the repository.
-
-- **Or use the generic catch-all rule** (less safe but works for any ITE device):
-  ```bash
-  sudo sed -i 's/^# SUBSYSTEM=="usb", ATTR{idVendor}=="048d", MODE="0666"/SUBSYSTEM=="usb", ATTR{idVendor}=="048d", MODE="0666"/' /etc/udev/rules.d/10-legionaura.rules
-  ```
-
-### 3. Check device permissions
-
-Find your device's bus and device numbers from `lsusb` (e.g., `Bus 001 Device 005`), then run:
-```bash
-ls -l /dev/bus/usb/001/005
-```
-
-You should see `rw` permissions for your user. Example of correct permissions:
-```
-crw-rw-rw- 1 root root 189, 4 Nov 16 10:30 /dev/bus/usb/001/005
-```
-
-If permissions show `rw----` or `r--r--r--`, the udev rule is not applied.
-
-### 4. Reload and trigger udev rules
-
+If you cannot open the device as a normal user, ensure the udev rules are installed and reload them:
 ```bash
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
-Then **unplug and replug your keyboard** (or reboot). Permissions should update automatically.
+### 3) PID mismatch / auto-detect
 
-### 5. Monitor udev events (optional)
+If the GUI works but the CLI does not, it is usually a PID mismatch in older versions.
+Recent versions of the CLI auto-detect supported PIDs (same as the GUI).
 
-To see live udev activity while you plug/unplug the keyboard:
+### 4) Override the devices list (advanced)
+
+If your distro installs `devices.json` to a non-standard location, you can override it:
 ```bash
-sudo udevadm monitor --udev &
-# Then unplug and replug your keyboard
+LEGIONAURA_DEVICES_JSON=/path/to/devices.json legionaura static ff0000
 ```
 
-You should see events like:
-```
-UDEV  [xxx] add      /devices/pci0000:00/.../usb1/1-1 (usb)
-```
+### 5) Still not working?
 
-### 6. Test as root (to confirm device-level functionality)
-
-If udev permissions are still problematic, test with `sudo` to rule out permission issues:
-```bash
-sudo legionaura --version
-sudo legionaura static ff0000
-```
-
-If this works but non-root doesn't, the issue is definitely permissions (udev rule).
-
-### Common Issues
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| `Device open failed` when run as non-root | Udev rule not applied or PID mismatch | Check steps 2–4 above |
-| `Device open failed` even with `sudo` | Device not found by libusb | Check step 1; ensure keyboard is connected |
-| `Failed to claim USB interface` | Another program is using the device | Close other RGB software; check `lsof /dev/bus/usb/...` |
-| Udev rule applied but still no access | User not in required group (if using `GROUP="plugdev"`) | Run `groups` to check; add user with `sudo usermod -aG plugdev $USER` and re-login |
-
-### Still not working?
-
-Please [open an issue](https://github.com/nivedck/LegionAura/issues) with:
-1. Output of `lsusb | grep 048d`
-2. Output of `cat /etc/udev/rules.d/10-legionaura.rules`
-3. Output of `ls -l /dev/bus/usb/BUS/DEV` (replace `BUS`/`DEV` with your numbers)
-4. Whether `sudo legionaura` works
-
----
-
-##  Usage
-
-### CLI
-
-```
-Usage:
-  legionaura static <colors...> [--brightness 1|2]
-  legionaura breath <colors...> [--speed 1..4] [--brightness 1|2]
-  legionaura wave <ltr|rtl> [--speed 1..4] [--brightness 1|2]
-  legionaura hue [--speed 1..4] [--brightness 1|2]
-  legionaura off
-  legionaura --brightness 1|2    (brightness only)
-```
-
-**Examples:**
-
-* Set a static color for all zones:
-  ```bash
-  ./build/cli/legionaura static ff0000
-  ```
-
-* Set a breathing effect with custom colors:
-  ```bash
-  ./build/cli/legionaura breath ff0000 00ff00 0000ff
-  ```
-
-* Set a wave effect from left to right:
-  ```bash
-  ./build/cli/legionaura wave ltr --speed 2
-  ```
-
-### GUI
-
-You can also use the GUI for easy control. Launch it from your application menu or by running `legionaura-gui` in your terminal.
-
----
+Please open an issue with:
+1) `lsusb | grep 048d`
+2) Whether `sudo legionaura static ff0000` works
+3) Output of `ls -l /dev/bus/usb/BUS/DEV` for the keyboard device
 
 ## Contributing
 
-Contributions are welcome! If you have a feature request, bug report, or want to contribute to the code, please open an issue or a pull request.
+Bug reports and pull requests are welcome.
 
----
+If your laptop uses the same controller but has a different PID, add it to `devices/devices.json`.
 
-## ⚠️ Disclaimer
+## Disclaimer
 
-This tool modifies your keyboard's firmware settings. The author is not responsible for any damage that may occur to your device. **Use at your own risk.**
+This tool changes keyboard lighting settings via USB commands. Use at your own risk.
 
----
+## License
 
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT. See `LICENSE`.
