@@ -27,3 +27,6 @@ target_link_libraries(legionaura-gui
     legionaura_lib
 )
 
+install(TARGETS legionaura-gui
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+

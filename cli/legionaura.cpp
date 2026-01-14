@@ -42,11 +42,20 @@ static void usage(const char* prog){
       "  " << prog << " wave <ltr|rtl> [--speed 1..4] [--brightness 1|2]\n"
       "  " << prog << " hue [--speed 1..4] [--brightness 1|2]\n"
       "  " << prog << " off\n"
+    "  " << prog << " apply                 (apply last saved settings)\n"
       "  " << prog << " --brightness 1|2        (brightness only)\n\n"
       "Notes:\n"
       "  • Colors must be hex RRGGBB (example: ff0000)\n"
       "  • If only 1–3 colors are given, remaining zones are auto-filled\n"
       "  • Brightness: 1 = low, 2 = high\n";
+}
+
+// Prefer auto-detect (packaged installs + non-default PIDs),
+// but keep old behavior by falling back to default VID/PID open.
+static bool openKeyboard(LegionAura& kb)
+{
+    if (kb.autoDetect()) return true;
+    return kb.open();
 }
 
 // ------------------------------------------------------
@@ -97,8 +106,23 @@ int main(int argc, char** argv){
         }
 
         LegionAura kb;
-        if (!kb.open()){ std::cerr << "Device open failed.\n"; return 3; }
+        if (!openKeyboard(kb)){ std::cerr << "Device open failed.\n"; return 3; }
         bool ok = kb.setBrightnessOnly(brightness);
+
+        if (ok) {
+            LAParams saved;
+            saved.effect = LAEffect::Static;
+            saved.speed = 1;
+            saved.brightness = brightness;
+            saved.zones = {
+                LAColor{255,255,255},
+                LAColor{255,255,255},
+                LAColor{255,255,255},
+                LAColor{255,255,255}
+            };
+            saved.waveDir = LAWaveDir::None;
+            LegionAura::saveUserConfig(saved);
+        }
 
         std::cout << (ok ? "OK\n" : "FAIL\n");
         return ok ? 0 : 4;
@@ -160,8 +184,31 @@ int main(int argc, char** argv){
 
     } else if (cmd == "off") {
         LegionAura kb;
-        if (!kb.open()){ std::cerr << "Device open failed.\n"; return 3; }
+        if (!openKeyboard(kb)){ std::cerr << "Device open failed.\n"; return 3; }
         bool ok = kb.off();
+
+        if (ok) {
+            LAParams saved{LAEffect::Static, 1, 1, {}, LAWaveDir::None};
+            saved.zones = {LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}};
+            LegionAura::saveUserConfig(saved);
+        }
+        std::cout << (ok ? "OK\n" : "FAIL\n");
+        return ok ? 0 : 4;
+
+    } else if (cmd == "apply") {
+        auto cfg = LegionAura::loadUserConfig();
+        if (!cfg) {
+            std::cerr << "No saved config found at " << LegionAura::defaultUserConfigPath() << "\n";
+            return 2;
+        }
+
+        LegionAura kb;
+        if (!openKeyboard(kb)) {
+            std::cerr << "Device open failed.\n";
+            return 3;
+        }
+
+        bool ok = kb.apply(*cfg);
         std::cout << (ok ? "OK\n" : "FAIL\n");
         return ok ? 0 : 4;
 
@@ -199,12 +246,16 @@ int main(int argc, char** argv){
     LAParams p{eff, speed, brightness, zones, wdir};
 
     LegionAura kb;
-    if (!kb.open()){
+    if (!openKeyboard(kb)){
         std::cerr << "Device open failed.\n";
         return 3;
     }
 
     bool ok = kb.apply(p);
+
+    if (ok) {
+        LegionAura::saveUserConfig(p);
+    }
     std::cout << (ok ? "OK\n" : "FAIL\n");
     return ok ? 0 : 4;
 }

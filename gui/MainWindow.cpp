@@ -12,6 +12,7 @@
 #include <QPalette>
 #include <QStyleFactory>
 #include <QTimer>
+#include <QFrame>
 #include <unordered_map>
 
 // ------------------------------------------------------------------
@@ -20,10 +21,21 @@
 static QString resolveDeviceName(uint16_t pid)
 {
     static const std::unordered_map<uint16_t, QString> names = {
+        // From devices/devices.json
+        {0xC995, "Lenovo Legion Pro"},
+        {0xC994, "Lenovo Legion Regular/Slim"},
         {0xC993, "Lenovo LOQ"},
+        {0xC985, "Lenovo Legion Pro"},
+        {0xC984, "Lenovo Legion Slim"},
+        {0xC983, "Lenovo LOQ"},
+        {0xC975, "Lenovo Legion Pro/Regular"},
+        {0xC973, "Lenovo IdeaPad Gaming"},
+        {0xC965, "Lenovo Legion Pro/Regular"},
+        {0xC963, "Lenovo IdeaPad Gaming"},
+        {0xC955, "Lenovo Legion Pro/Regular"},
+
+        // Legacy/extra (not currently in devices.json)
         {0xC996, "Lenovo Legion"},
-        {0xC963, "Lenovo IdeaPad Gaming"}
-        
     };
 
     auto it = names.find(pid);
@@ -31,6 +43,23 @@ static QString resolveDeviceName(uint16_t pid)
         return it->second;
 
     return "Lenovo (Unknown Model)";
+}
+
+static void setDeviceStatusText(Ui::MainWindow* ui, const QString& deviceName, bool connected)
+{
+    const QString nameRaw = deviceName.trimmed();
+    const QString name = nameRaw;
+
+    if (!connected) {
+        ui->lblDeviceLeft->setText("Not connected");
+        ui->lblDeviceName->setText(QString());
+        if (ui->lblDeviceName) ui->lblDeviceName->hide();
+        return;
+    }
+
+    ui->lblDeviceLeft->setText(name.isEmpty() ? QString("Connected") : QString("%1 - Connected").arg(name));
+    ui->lblDeviceName->setText(QString());
+    if (ui->lblDeviceName) ui->lblDeviceName->hide();
 }
 
 // ------------------------------------------------------------------
@@ -59,6 +88,32 @@ MainWindow::MainWindow(QWidget *parent)
     dark.setColor(QPalette::HighlightedText, Qt::black);
     qApp->setPalette(dark);
 
+    // Simple modern styling (keep it subtle; no new UX/features).
+    qApp->setStyleSheet(
+        "QLabel#lblAppTitle { font-size: 22px; font-weight: 700; }"
+        "QLabel#lblDeviceLeft { font-size: 18px; font-weight: 650; }"
+        "QGroupBox { border: 1px solid #2b2b2b; border-radius: 12px; margin-top: 10px; }"
+        "QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #cfcfcf; }"
+        "QLineEdit, QComboBox { background: #161616; border: 1px solid #333; border-radius: 8px; padding: 6px 10px; }"
+        "QComboBox::drop-down { border: 0px; }"
+        "QPushButton { background: #2d2d2d; border: 1px solid #3a3a3a; border-radius: 10px; padding: 8px 12px; }"
+        "QPushButton:hover { background: #3a3a3a; }"
+        "QPushButton:pressed { background: #242424; }"
+        "QPushButton#btnApply { background: #2d4b8a; border-color: #2d4b8a; }"
+        "QPushButton#btnApply:hover { background: #365aa6; }"
+        "QPushButton:disabled { color: #777; background: #222; border-color: #2b2b2b; }"
+        "QFrame#previewZ1, QFrame#previewZ2, QFrame#previewZ3, QFrame#previewZ4 { border-radius: 12px; }"
+    );
+
+    // Subtle bottom-right link
+    if (ui->statusbar) {
+        auto *github = new QLabel("<a href=\"https://github.com/nivedck\">github.com/nivedck</a>");
+        github->setOpenExternalLinks(true);
+        github->setTextInteractionFlags(Qt::TextBrowserInteraction);
+        github->setStyleSheet("QLabel { color: #777; font-size: 11px; } QLabel:hover { text-decoration: underline; }");
+        ui->statusbar->addPermanentWidget(github);
+    }
+
     
     connect(ui->btnDetect, &QPushButton::clicked, this, &MainWindow::onDetectClicked);
     connect(ui->btnApply,  &QPushButton::clicked, this, &MainWindow::onApplyClicked);
@@ -72,10 +127,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->comboEffect, qOverload<int>(&QComboBox::currentIndexChanged),
             this, &MainWindow::onEffectChanged);
 
+    // Live preview updates when typing colors
+    connect(ui->editZ1, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
+    connect(ui->editZ2, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
+    connect(ui->editZ3, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
+    connect(ui->editZ4, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
+
     // Initial UI state
     onEffectChanged(ui->comboEffect->currentIndex());
-    ui->lblDeviceLeft->setText("Device: (not connected)");
-    ui->lblDeviceName->setText("");
+    setDeviceStatusText(ui, QString(), false);
+    ui->lblDeviceName->hide();
+
+    updatePreview();
 }
 
 MainWindow::~MainWindow()
@@ -91,9 +154,7 @@ void MainWindow::onDetectClicked()
     if (kb_.autoDetect()) {
         deviceReady_ = true;
 
-        QString name = resolveDeviceName(kb_.getPid());
-        ui->lblDeviceLeft->setText("Device: connected");
-        ui->lblDeviceName->setText(name);
+        setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
 
         setStatusOk("Device connected");
         return;
@@ -102,16 +163,13 @@ void MainWindow::onDetectClicked()
     if (kb_.open()) {
         deviceReady_ = true;
 
-        QString name = resolveDeviceName(kb_.getPid());
-        ui->lblDeviceLeft->setText("Device: connected");
-        ui->lblDeviceName->setText(name);
+        setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
 
         setStatusOk("Device connected (default)");
     } else {
         deviceReady_ = false;
 
-        ui->lblDeviceLeft->setText("Device: (not connected)");
-        ui->lblDeviceName->setText("");
+        setDeviceStatusText(ui, QString(), false);
 
         setStatusErr("Failed to open device. Try installing udev rules.");
     }
@@ -125,8 +183,7 @@ void MainWindow::autoDetectOnStartup()
     if (kb_.autoDetect()) {
         deviceReady_ = true;
 
-        ui->lblDeviceLeft->setText("Device: connected");
-        ui->lblDeviceName->setText(resolveDeviceName(kb_.getPid()));
+        setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
 
         setStatusOk("Device auto-detected");
     }
@@ -173,6 +230,16 @@ void MainWindow::setBtnSwatch(QPushButton* btn, const QString& hex)
     btn->setStyleSheet(
         QString("background-color: #%1; border: 1px solid #555;").arg(hex)
     );
+}
+
+void MainWindow::setPreviewSwatch(QWidget* w, const QString& hex, bool enabled)
+{
+    const bool hasColor = enabled && !hex.isEmpty();
+    const QString bg = enabled
+        ? (hasColor ? QString("#%1").arg(hex) : QString("transparent"))
+        : QString("#202020");
+    const QString border = enabled ? QString("#3a3a3a") : QString("#2b2b2b");
+    w->setStyleSheet(QString("background-color: %1; border: 1px solid %2; border-radius: 12px;").arg(bg, border));
 }
 
 // ------------------------------------------------------------------
@@ -233,6 +300,56 @@ void MainWindow::onEffectChanged(int idx)
     ui->chkAutofill->setEnabled(needsColors);
 
     ui->comboDirection->setEnabled(needsDir);
+
+    if (ui->grpPreview)
+        ui->grpPreview->setEnabled(needsColors);
+
+    updatePreview();
+}
+
+void MainWindow::updatePreview()
+{
+    const QString mode = ui->comboEffect->currentText().toLower();
+    const bool needsColors = (mode == "static" || mode == "breath");
+
+    auto normalizeHex = [&](QLineEdit* edit) -> QString {
+        QString hex = edit->text().trimmed().toLower();
+        if (hex.startsWith('#')) hex = hex.mid(1);
+        return hex;
+    };
+
+    auto updateOne = [&](QLineEdit* edit, QPushButton* btn, QWidget* frame) {
+        const QString hex = normalizeHex(edit);
+
+        if (!needsColors) {
+            btn->setStyleSheet(QString());
+            setPreviewSwatch(frame, QString(), false);
+            return;
+        }
+
+        if (hex.isEmpty()) {
+            // No color selected: show no color.
+            btn->setStyleSheet(QString());
+            setPreviewSwatch(frame, QString(), true);
+            return;
+        }
+
+        auto rgb = hexToRgb(hex);
+        if (!rgb) {
+            // Invalid input: treat as no color (don't keep stale swatches).
+            btn->setStyleSheet(QString());
+            setPreviewSwatch(frame, QString(), true);
+            return;
+        }
+
+        setPreviewSwatch(frame, hex, true);
+        setBtnSwatch(btn, hex);
+    };
+
+    updateOne(ui->editZ1, ui->btnColor1, ui->previewZ1);
+    updateOne(ui->editZ2, ui->btnColor2, ui->previewZ2);
+    updateOne(ui->editZ3, ui->btnColor3, ui->previewZ3);
+    updateOne(ui->editZ4, ui->btnColor4, ui->previewZ4);
 }
 
 // ------------------------------------------------------------------
@@ -282,9 +399,14 @@ std::optional<LAParams> MainWindow::buildParamsFromUi() const
 
         if (cols.empty()) return std::nullopt;
 
-        auto normalized = ui->chkAutofill->isChecked()
-                        ? normalize4(cols)
-                        : std::array<QString,4>{cols[0], cols[1], cols[2], cols[3]};
+        std::array<QString,4> normalized;
+        if (ui->chkAutofill->isChecked()) {
+            normalized = normalize4(cols);
+        } else {
+            // Without autofill, require all 4 zones to be provided to avoid out-of-range access.
+            if (cols.size() != 4) return std::nullopt;
+            normalized = {cols[0], cols[1], cols[2], cols[3]};
+        }
 
         for (int i = 0; i < 4; i++) {
             auto c = hexToRgb(normalized[i]);
@@ -317,8 +439,12 @@ void MainWindow::onApplyClicked()
     }
 
     bool ok = kb_.apply(*params);
-    if (ok) setStatusOk("Lighting updated.");
-    else    setStatusErr("Failed to send command.");
+    if (ok) {
+        LegionAura::saveUserConfig(*params);
+        setStatusOk("Lighting updated.");
+    } else {
+        setStatusErr("Failed to send command.");
+    }
 }
 
 // ------------------------------------------------------------------
@@ -331,10 +457,14 @@ void MainWindow::onOffClicked()
         return;
     }
 
-    if (kb_.off())
+    if (kb_.off()) {
+        LAParams saved{LAEffect::Static, 1, 1, {}, LAWaveDir::None};
+        saved.zones = {LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}};
+        LegionAura::saveUserConfig(saved);
         setStatusOk("Keyboard turned off.");
-    else
+    } else {
         setStatusErr("Failed to send off command.");
+    }
 }
 
 // ------------------------------------------------------------------

@@ -40,6 +40,9 @@ private slots:
     // Effect changes (enable/disable controls as needed)
     void onEffectChanged(int index);
 
+    // Live preview updates
+    void updatePreview();
+
 private:
     std::optional<QString> pickHexColor(const QString &initialHex);
     static QString rgbToHex(const QColor &c);
@@ -48,6 +51,8 @@ private:
     void setBtnSwatch(QPushButton* btn, const QString& hex);
     void setStatusOk(const QString& msg);
     void setStatusErr(const QString& msg);
+
+    void setPreviewSwatch(QWidget* w, const QString& hex, bool enabled);
 
     // Build LAParams from current UI state (with auto-fill if checked)
     std::optional<LAParams> buildParamsFromUi() const;

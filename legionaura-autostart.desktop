@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=LegionAura (Apply saved lighting)
+Comment=Re-apply last saved LegionAura keyboard lighting settings
+Exec=legionaura apply
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

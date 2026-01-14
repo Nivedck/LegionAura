@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(LegionAura VERSION 1.1.2)
 
+include(GNUInstallDirs)
+
 add_definitions(-DLEGIONAURA_VERSION=\"${PROJECT_VERSION}\")
 add_compile_definitions(PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
@@ -11,6 +13,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(lib)
 add_subdirectory(cli)
 add_subdirectory(gui)
+
+# ------------------------------------------------------
+# Install runtime data
+# ------------------------------------------------------
+install(FILES devices/devices.json
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/legionaura)
 
 # ------------------------------------------------------
 # Install udev rules for non-root USB access
@@ -32,3 +40,9 @@ install(FILES legionaura.desktop
 
 install(FILES icons/legionaura.png
         DESTINATION /usr/share/icons/hicolor/256x256/apps)
+
+# ------------------------------------------------------
+# Auto-apply last settings on graphical login (XDG autostart)
+# ------------------------------------------------------
+install(FILES legionaura-autostart.desktop
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/xdg/autostart)

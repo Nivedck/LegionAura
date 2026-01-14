@@ -49,6 +49,13 @@ public:
     loadSupportedDevices(const std::string& path);
 
     // ----------------------------------------------------
+    // Persist last-used settings (for auto-apply on login)
+    // ----------------------------------------------------
+    static std::string defaultUserConfigPath();
+    static bool saveUserConfig(const LAParams& p, std::string path = {});
+    static std::optional<LAParams> loadUserConfig(std::string path = {});
+
+    // ----------------------------------------------------
     // NEW: Safe accessors for GUI
     // ----------------------------------------------------
     uint16_t getVid() const { return vid_; }
