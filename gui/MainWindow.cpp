@@ -21,10 +21,21 @@
 static QString resolveDeviceName(uint16_t pid)
 {
     static const std::unordered_map<uint16_t, QString> names = {
+        // From devices/devices.json
+        {0xC995, "Lenovo Legion Pro"},
+        {0xC994, "Lenovo Legion Regular/Slim"},
         {0xC993, "Lenovo LOQ"},
+        {0xC985, "Lenovo Legion Pro"},
+        {0xC984, "Lenovo Legion Slim"},
+        {0xC983, "Lenovo LOQ"},
+        {0xC975, "Lenovo Legion Pro/Regular"},
+        {0xC973, "Lenovo IdeaPad Gaming"},
+        {0xC965, "Lenovo Legion Pro/Regular"},
+        {0xC963, "Lenovo IdeaPad Gaming"},
+        {0xC955, "Lenovo Legion Pro/Regular"},
+
+        // Legacy/extra (not currently in devices.json)
         {0xC996, "Lenovo Legion"},
-        {0xC963, "Lenovo IdeaPad Gaming"}
-        
     };
 
     auto it = names.find(pid);
@@ -32,6 +43,23 @@ static QString resolveDeviceName(uint16_t pid)
         return it->second;
 
     return "Lenovo (Unknown Model)";
+}
+
+static void setDeviceStatusText(Ui::MainWindow* ui, const QString& deviceName, bool connected)
+{
+    const QString nameRaw = deviceName.trimmed();
+    const QString name = nameRaw;
+
+    if (!connected) {
+        ui->lblDeviceLeft->setText("Not connected");
+        ui->lblDeviceName->setText(QString());
+        if (ui->lblDeviceName) ui->lblDeviceName->hide();
+        return;
+    }
+
+    ui->lblDeviceLeft->setText(name.isEmpty() ? QString("Connected") : QString("%1 - Connected").arg(name));
+    ui->lblDeviceName->setText(QString());
+    if (ui->lblDeviceName) ui->lblDeviceName->hide();
 }
 
 // ------------------------------------------------------------------
@@ -63,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Simple modern styling (keep it subtle; no new UX/features).
     qApp->setStyleSheet(
         "QLabel#lblAppTitle { font-size: 22px; font-weight: 700; }"
+        "QLabel#lblDeviceLeft { font-size: 18px; font-weight: 650; }"
         "QGroupBox { border: 1px solid #2b2b2b; border-radius: 12px; margin-top: 10px; }"
         "QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #cfcfcf; }"
         "QLineEdit, QComboBox { background: #161616; border: 1px solid #333; border-radius: 8px; padding: 6px 10px; }"
@@ -106,8 +135,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Initial UI state
     onEffectChanged(ui->comboEffect->currentIndex());
-    ui->lblDeviceLeft->setText("Device: (not connected)");
-    ui->lblDeviceName->setText("");
+    setDeviceStatusText(ui, QString(), false);
+    ui->lblDeviceName->hide();
 
     updatePreview();
 }
@@ -125,9 +154,7 @@ void MainWindow::onDetectClicked()
     if (kb_.autoDetect()) {
         deviceReady_ = true;
 
-        QString name = resolveDeviceName(kb_.getPid());
-        ui->lblDeviceLeft->setText("Device: connected");
-        ui->lblDeviceName->setText(name);
+        setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
 
         setStatusOk("Device connected");
         return;
@@ -136,16 +163,13 @@ void MainWindow::onDetectClicked()
     if (kb_.open()) {
         deviceReady_ = true;
 
-        QString name = resolveDeviceName(kb_.getPid());
-        ui->lblDeviceLeft->setText("Device: connected");
-        ui->lblDeviceName->setText(name);
+        setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
 
         setStatusOk("Device connected (default)");
     } else {
         deviceReady_ = false;
 
-        ui->lblDeviceLeft->setText("Device: (not connected)");
-        ui->lblDeviceName->setText("");
+        setDeviceStatusText(ui, QString(), false);
 
         setStatusErr("Failed to open device. Try installing udev rules.");
     }
@@ -159,8 +183,7 @@ void MainWindow::autoDetectOnStartup()
     if (kb_.autoDetect()) {
         deviceReady_ = true;
 
-        ui->lblDeviceLeft->setText("Device: connected");
-        ui->lblDeviceName->setText(resolveDeviceName(kb_.getPid()));
+        setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
 
         setStatusOk("Device auto-detected");
     }
