@@ -18,6 +18,7 @@ This project is not affiliated with Lenovo.
 - Brightness control (1-2)
 - Wave direction (LTR/RTL)
 - Auto-detects supported Lenovo ITE keyboard PIDs
+- Saves the last applied settings and re-applies them on user login
 
 ## Supported devices
 
@@ -78,6 +79,7 @@ Installed files (typical):
 - Icon in `/usr/share/icons/hicolor/256x256/apps`
 - Device list in `/usr/share/legionaura/devices.json`
 - udev rule in `/usr/lib/udev/rules.d/10-legionaura.rules`
+- Autostart entry in `/usr/share/xdg/autostart/legionaura-autostart.desktop`
 
 ### udev rules (recommended)
 
@@ -101,6 +103,7 @@ legionaura breath <colors...> [--speed 1..4] [--brightness 1|2]
 legionaura wave <ltr|rtl> [--speed 1..4] [--brightness 1|2]
 legionaura hue [--speed 1..4] [--brightness 1|2]
 legionaura off
+legionaura apply
 legionaura --brightness 1|2
 ```
 
@@ -121,28 +124,21 @@ legionaura-gui
 
 ## Applying settings on login
 
-If you want a fixed color/effect at every login, create a user systemd service.
+LegionAura automatically saves the last successfully applied settings (from either the GUI or CLI) to:
 
-Example (`~/.config/systemd/user/legionaura.service`):
-```ini
-[Unit]
-Description=Apply LegionAura keyboard lighting
+- `~/.config/legionaura/config.json`
 
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/legionaura static ff0000
+On graphical login, the package installs an XDG autostart entry that re-applies this file automatically.
 
-[Install]
-WantedBy=default.target
-```
-
-Enable it:
+Manual re-apply (usually not needed):
 ```bash
-systemctl --user daemon-reload
-systemctl --user enable --now legionaura.service
+legionaura apply
 ```
 
-Adjust the path to `legionaura` if you installed to a different prefix.
+To disable auto-apply, remove or disable the autostart entry:
+
+- System-wide: `/usr/share/xdg/autostart/legionaura-autostart.desktop`
+- Per-user override: `~/.config/autostart/legionaura-autostart.desktop`
 
 ## Troubleshooting
 
@@ -177,7 +173,14 @@ If your distro installs `devices.json` to a non-standard location, you can overr
 LEGIONAURA_DEVICES_JSON=/path/to/devices.json legionaura static ff0000
 ```
 
-### 5) Still not working?
+### 5) Override the saved config path (advanced)
+
+By default, LegionAura uses `~/.config/legionaura/config.json`. You can override it:
+```bash
+LEGIONAURA_CONFIG=/path/to/config.json legionaura apply
+```
+
+### 6) Still not working?
 
 Please open an issue with:
 1) `lsusb | grep 048d`

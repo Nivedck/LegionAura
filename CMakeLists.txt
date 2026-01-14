@@ -40,3 +40,9 @@ install(FILES legionaura.desktop
 
 install(FILES icons/legionaura.png
         DESTINATION /usr/share/icons/hicolor/256x256/apps)
+
+# ------------------------------------------------------
+# Auto-apply last settings on graphical login (XDG autostart)
+# ------------------------------------------------------
+install(FILES legionaura-autostart.desktop
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/xdg/autostart)

@@ -317,8 +317,12 @@ void MainWindow::onApplyClicked()
     }
 
     bool ok = kb_.apply(*params);
-    if (ok) setStatusOk("Lighting updated.");
-    else    setStatusErr("Failed to send command.");
+    if (ok) {
+        LegionAura::saveUserConfig(*params);
+        setStatusOk("Lighting updated.");
+    } else {
+        setStatusErr("Failed to send command.");
+    }
 }
 
 // ------------------------------------------------------------------
@@ -331,10 +335,14 @@ void MainWindow::onOffClicked()
         return;
     }
 
-    if (kb_.off())
+    if (kb_.off()) {
+        LAParams saved{LAEffect::Static, 1, 1, {}, LAWaveDir::None};
+        saved.zones = {LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}};
+        LegionAura::saveUserConfig(saved);
         setStatusOk("Keyboard turned off.");
-    else
+    } else {
         setStatusErr("Failed to send off command.");
+    }
 }
 
 // ------------------------------------------------------------------

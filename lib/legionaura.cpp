@@ -18,6 +18,82 @@ static uint8_t clampByte(int v){ return (uint8_t)std::max(0,std::min(255,v)); }
 namespace {
 constexpr uint16_t kLenovoIteVid = 0x048D;
 
+std::string toLowerCopy(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) {
+        return (char)std::tolower(c);
+    });
+    return s;
+}
+
+std::string effectToString(LAEffect e)
+{
+    switch (e) {
+        case LAEffect::Static: return "static";
+        case LAEffect::Breath: return "breath";
+        case LAEffect::Wave:   return "wave";
+        case LAEffect::Hue:    return "hue";
+        case LAEffect::None:   return "none";
+        default:               return "static";
+    }
+}
+
+std::optional<LAEffect> effectFromString(const std::string& s)
+{
+    std::string v = toLowerCopy(s);
+    if (v == "static") return LAEffect::Static;
+    if (v == "breath") return LAEffect::Breath;
+    if (v == "wave")   return LAEffect::Wave;
+    if (v == "hue")    return LAEffect::Hue;
+    if (v == "none")   return LAEffect::None;
+    if (v == "off")    return LAEffect::Static; // off is represented by static + black zones
+    return std::nullopt;
+}
+
+std::string waveDirToString(LAWaveDir d)
+{
+    switch (d) {
+        case LAWaveDir::LTR:  return "ltr";
+        case LAWaveDir::RTL:  return "rtl";
+        case LAWaveDir::None: return "none";
+        default:              return "none";
+    }
+}
+
+LAWaveDir waveDirFromString(const std::string& s)
+{
+    std::string v = toLowerCopy(s);
+    if (v == "ltr") return LAWaveDir::LTR;
+    if (v == "rtl") return LAWaveDir::RTL;
+    return LAWaveDir::None;
+}
+
+std::string rgbToHex(const LAColor& c)
+{
+    static const char* hex = "0123456789abcdef";
+    std::string out;
+    out.resize(6);
+    out[0] = hex[(c.r >> 4) & 0xF];
+    out[1] = hex[(c.r >> 0) & 0xF];
+    out[2] = hex[(c.g >> 4) & 0xF];
+    out[3] = hex[(c.g >> 0) & 0xF];
+    out[4] = hex[(c.b >> 4) & 0xF];
+    out[5] = hex[(c.b >> 0) & 0xF];
+    return out;
+}
+
+std::vector<std::string> normalizeHexColors(std::vector<std::string> in)
+{
+    if (in.empty()) return in;
+    for (auto& s : in) s = toLowerCopy(s);
+
+    if (in.size() == 1) return {in[0], in[0], in[0], in[0]};
+    if (in.size() == 2) return {in[0], in[1], in[1], in[1]};
+    if (in.size() == 3) return {in[0], in[1], in[2], in[2]};
+    if (in.size() > 4)  in.resize(4);
+    return in;
+}
+
 bool devicePresentOnBus(libusb_context* ctx, uint16_t vid, uint16_t pid)
 {
     libusb_device** list = nullptr;
@@ -126,11 +202,152 @@ std::optional<std::string> resolveDevicesJsonPath()
 
     return std::nullopt;
 }
+
+std::string defaultUserConfigPathInternal()
+{
+    namespace fs = std::filesystem;
+
+    if (const char* env = std::getenv("LEGIONAURA_CONFIG")) {
+        return fs::path(env).string();
+    }
+
+    if (const char* xdg = std::getenv("XDG_CONFIG_HOME")) {
+        return (fs::path(xdg) / "legionaura" / "config.json").string();
+    }
+
+    if (const char* home = std::getenv("HOME")) {
+        return (fs::path(home) / ".config" / "legionaura" / "config.json").string();
+    }
+
+    // Last resort: relative path
+    return "./legionaura-config.json";
+}
 } // namespace
 
 
 LegionAura::LegionAura(uint16_t vid, uint16_t pid) : vid_(vid), pid_(pid) {}
 LegionAura::~LegionAura(){ close(); }
+
+std::string LegionAura::defaultUserConfigPath()
+{
+    return defaultUserConfigPathInternal();
+}
+
+bool LegionAura::saveUserConfig(const LAParams& p, std::string path)
+{
+    namespace fs = std::filesystem;
+
+    if (path.empty()) path = defaultUserConfigPathInternal();
+    fs::path outPath(path);
+
+    std::error_code ec;
+    fs::create_directories(outPath.parent_path(), ec);
+
+    std::ofstream f(outPath);
+    if (!f.is_open()) return false;
+
+    // Represent "off" as static + black zones.
+    bool isOff = (p.effect == LAEffect::Static);
+    for (const auto& z : p.zones) {
+        if (z.r != 0 || z.g != 0 || z.b != 0) { isOff = false; break; }
+    }
+
+    f << "{\n";
+    f << "  \"version\": 1,\n";
+    f << "  \"effect\": \"" << (isOff ? "off" : effectToString(p.effect)) << "\",\n";
+    f << "  \"speed\": " << (unsigned)p.speed << ",\n";
+    f << "  \"brightness\": " << (unsigned)p.brightness << ",\n";
+    f << "  \"waveDir\": \"" << waveDirToString(p.waveDir) << "\",\n";
+    f << "  \"zones\": [\n";
+    for (int i = 0; i < 4; ++i) {
+        f << "    \"" << rgbToHex(p.zones[i]) << "\"";
+        f << (i == 3 ? "\n" : ",\n");
+    }
+    f << "  ]\n";
+    f << "}\n";
+
+    return true;
+}
+
+std::optional<LAParams> LegionAura::loadUserConfig(std::string path)
+{
+    if (path.empty()) path = defaultUserConfigPathInternal();
+
+    std::ifstream f(path);
+    if (!f.is_open()) return std::nullopt;
+
+    std::stringstream buffer;
+    buffer << f.rdbuf();
+    std::string content = buffer.str();
+
+    auto findString = [&](const char* key) -> std::optional<std::string> {
+        std::regex re(std::string("\\\"") + key + "\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"");
+        std::smatch m;
+        if (!std::regex_search(content, m, re)) return std::nullopt;
+        return m[1].str();
+    };
+    auto findInt = [&](const char* key) -> std::optional<int> {
+        std::regex re(std::string("\\\"") + key + "\\\"\\s*:\\s*(\\d+)");
+        std::smatch m;
+        if (!std::regex_search(content, m, re)) return std::nullopt;
+        try { return std::stoi(m[1].str()); } catch (...) { return std::nullopt; }
+    };
+
+    auto effectStr = findString("effect");
+    auto speedVal = findInt("speed");
+    auto brightVal = findInt("brightness");
+    auto waveStr = findString("waveDir");
+
+    if (!effectStr || !speedVal || !brightVal) return std::nullopt;
+
+    std::string effLower = toLowerCopy(*effectStr);
+    bool isOff = (effLower == "off");
+    auto eff = effectFromString(*effectStr);
+    if (!eff) return std::nullopt;
+
+    std::vector<std::string> zonesHex;
+    {
+        std::regex zonesBlock(R"REGEX("zones"\s*:\s*\[([^\]]*)\])REGEX", std::regex::icase);
+        std::smatch m;
+        if (std::regex_search(content, m, zonesBlock)) {
+            std::string inside = m[1].str();
+            std::regex item(R"REGEX("([0-9A-Fa-f]{6})")REGEX");
+            for (auto it = std::sregex_iterator(inside.begin(), inside.end(), item);
+                 it != std::sregex_iterator(); ++it) {
+                zonesHex.push_back((*it)[1].str());
+            }
+        }
+    }
+
+    LAParams p;
+    p.effect = *eff;
+    p.speed = (uint8_t)std::max(1, std::min(4, *speedVal));
+    p.brightness = (uint8_t)std::max(1, std::min(2, *brightVal));
+    p.waveDir = waveStr ? waveDirFromString(*waveStr) : LAWaveDir::None;
+
+    if (isOff) {
+        p.effect = LAEffect::Static;
+        p.zones = {LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}};
+        p.waveDir = LAWaveDir::None;
+        p.speed = 1;
+        p.brightness = (uint8_t)std::max(1, std::min(2, *brightVal));
+        return p;
+    }
+
+    if (p.effect == LAEffect::Static || p.effect == LAEffect::Breath) {
+        zonesHex = normalizeHexColors(std::move(zonesHex));
+        if (zonesHex.size() != 4) return std::nullopt;
+        for (int i = 0; i < 4; ++i) {
+            auto c = parseHexRGB(zonesHex[i]);
+            if (!c) return std::nullopt;
+            p.zones[i] = *c;
+        }
+    } else {
+        p.zones = {LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}, LAColor{0,0,0}};
+    }
+
+    return p;
+}
 
 bool LegionAura::open() {
     if (ctx_) return true;
