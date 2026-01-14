@@ -18,6 +18,26 @@ static uint8_t clampByte(int v){ return (uint8_t)std::max(0,std::min(255,v)); }
 namespace {
 constexpr uint16_t kLenovoIteVid = 0x048D;
 
+bool devicePresentOnBus(libusb_context* ctx, uint16_t vid, uint16_t pid)
+{
+    libusb_device** list = nullptr;
+    ssize_t n = libusb_get_device_list(ctx, &list);
+    if (n < 0 || !list) return false;
+
+    bool found = false;
+    for (ssize_t i = 0; i < n; ++i) {
+        libusb_device_descriptor desc{};
+        if (libusb_get_device_descriptor(list[i], &desc) != 0) continue;
+        if (desc.idVendor == vid && desc.idProduct == pid) {
+            found = true;
+            break;
+        }
+    }
+
+    libusb_free_device_list(list, 1);
+    return found;
+}
+
 std::vector<std::pair<uint16_t, uint16_t>> builtInSupportedDevices()
 {
     // This project targets Lenovo laptops with the ITE 8295 RGB controller.
@@ -123,18 +143,29 @@ bool LegionAura::open() {
     dev_ = libusb_open_device_with_vid_pid(ctx_, vid_, pid_);
     if (!dev_) {
 
-        // Permission hint:
-        std::cerr <<
-            "Device open failed.\n"
-            "Permission denied. The keyboard device cannot be accessed.\n\n"
-            "Solutions:\n"
-            "  1) Run the command with sudo:\n"
-            "       sudo legionaura <command>\n\n"
-            "  2) Or install the udev rules for non-root access:\n"
-            "       sudo cp udev/10-legionaura.rules /etc/udev/rules.d/\n"
-            "       sudo udevadm control --reload-rules\n"
-            "       sudo udevadm trigger\n\n"
-            "After installing the rules, unplug and reconnect the keyboard.\n";
+        const bool present = devicePresentOnBus(ctx_, vid_, pid_);
+        if (!present) {
+            std::cerr <<
+                "Device open failed.\n"
+                "No supported device found at VID:PID "
+                << std::hex << std::showbase << vid_ << ":" << pid_ << std::dec << "\n\n"
+                "If your keyboard shows up in 'lsusb' with a different PID, use auto-detect\n"
+                "(the GUI does this automatically) or ensure devices.json includes your PID.\n";
+        } else {
+            // Permission/busy hint:
+            std::cerr <<
+                "Device open failed.\n"
+                "The device exists, but cannot be opened. This is usually a permissions issue\n"
+                "or another driver/program is holding the interface.\n\n"
+                "Solutions:\n"
+                "  1) Run the command with sudo:\n"
+                "       sudo legionaura <command>\n\n"
+                "  2) Or install the udev rules for non-root access:\n"
+                "       sudo cp udev/10-legionaura.rules /etc/udev/rules.d/\n"
+                "       sudo udevadm control --reload-rules\n"
+                "       sudo udevadm trigger\n\n"
+                "After installing the rules, unplug and reconnect the keyboard.\n";
+        }
 
         libusb_exit(ctx_);
         ctx_ = nullptr;

@@ -49,6 +49,14 @@ static void usage(const char* prog){
       "  • Brightness: 1 = low, 2 = high\n";
 }
 
+// Prefer auto-detect (packaged installs + non-default PIDs),
+// but keep old behavior by falling back to default VID/PID open.
+static bool openKeyboard(LegionAura& kb)
+{
+    if (kb.autoDetect()) return true;
+    return kb.open();
+}
+
 // ------------------------------------------------------
 // MAIN FUNCTION ---- Nivedck
 // ------------------------------------------------------
@@ -97,7 +105,7 @@ int main(int argc, char** argv){
         }
 
         LegionAura kb;
-        if (!kb.open()){ std::cerr << "Device open failed.\n"; return 3; }
+        if (!openKeyboard(kb)){ std::cerr << "Device open failed.\n"; return 3; }
         bool ok = kb.setBrightnessOnly(brightness);
 
         std::cout << (ok ? "OK\n" : "FAIL\n");
@@ -160,7 +168,7 @@ int main(int argc, char** argv){
 
     } else if (cmd == "off") {
         LegionAura kb;
-        if (!kb.open()){ std::cerr << "Device open failed.\n"; return 3; }
+        if (!openKeyboard(kb)){ std::cerr << "Device open failed.\n"; return 3; }
         bool ok = kb.off();
         std::cout << (ok ? "OK\n" : "FAIL\n");
         return ok ? 0 : 4;
@@ -199,7 +207,7 @@ int main(int argc, char** argv){
     LAParams p{eff, speed, brightness, zones, wdir};
 
     LegionAura kb;
-    if (!kb.open()){
+    if (!openKeyboard(kb)){
         std::cerr << "Device open failed.\n";
         return 3;
     }
