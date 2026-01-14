@@ -20,188 +20,447 @@
    <string>LegionAura</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
+     <property name="spacing">
+      <number>12</number>
+     </property>
+     <property name="leftMargin">
+      <number>16</number>
+     </property>
+     <property name="topMargin">
+      <number>16</number>
+     </property>
+     <property name="rightMargin">
+      <number>16</number>
+     </property>
+     <property name="bottomMargin">
+      <number>16</number>
+     </property>
 
-    <!-- TOP BAR WITH CENTERED LABEL -->
-    <item>
-     <layout class="QHBoxLayout" name="topBar">
-
-      <item>
-       <widget class="QLabel" name="lblDeviceLeft">
-        <property name="text">
-         <string>Device: (not connected)</string>
+     <!-- TOP BAR -->
+     <item>
+      <widget class="QFrame" name="topFrame">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
         </property>
-       </widget>
-      </item>
-
-      <item>
-       <spacer name="spacerCenter">
-        <property name="orientation"><enum>Qt::Horizontal</enum></property>
-       </spacer>
-      </item>
-
-      <item>
-       <widget class="QLabel" name="lblDeviceName">
-        <property name="text">
-         <string></string>
-        </property>
-       </widget>
-      </item>
-
-      <item>
-       <spacer name="spacerRight">
-        <property name="orientation"><enum>Qt::Horizontal</enum></property>
-       </spacer>
-      </item>
-
-      <item>
-       <widget class="QPushButton" name="btnDetect">
-        <property name="text"><string>Detect Device</string></property>
-       </widget>
-      </item>
-
-     </layout>
-    </item>
-
-    <!-- MAIN CONTENT -->
-    <item>
-     <layout class="QHBoxLayout" name="mainRow">
-
-      <item>
-       <widget class="QGroupBox" name="grpEffect">
-        <property name="title"><string>Effect</string></property>
-        <layout class="QVBoxLayout" name="leftColumn">
-
+        <layout class="QHBoxLayout" name="topBar">
+         <property name="spacing">
+          <number>10</number>
+         </property>
          <item>
-          <layout class="QFormLayout" name="formEffect">
-
-           <item row="0" column="0"><widget class="QLabel" name="lblMode"><property name="text"><string>Mode</string></property></widget></item>
-           <item row="0" column="1">
-            <widget class="QComboBox" name="comboEffect">
-             <item><property name="text"><string>Static</string></property></item>
-             <item><property name="text"><string>Breath</string></property></item>
-             <item><property name="text"><string>Wave</string></property></item>
-             <item><property name="text"><string>Hue</string></property></item>
-            </widget>
-           </item>
-
-           <item row="1" column="0"><widget class="QLabel" name="lblSpeed"><property name="text"><string>Speed</string></property></widget></item>
-           <item row="1" column="1">
-            <widget class="QComboBox" name="comboSpeed">
-             <item>
-              <property name="text">
-               <string>1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>3</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>4</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-
-           <item row="2" column="0"><widget class="QLabel" name="lblBrightness"><property name="text"><string>Brightness</string></property></widget></item>
-           <item row="2" column="1">
-            <widget class="QComboBox" name="comboBrightness">
-             <item>
-              <property name="text">
-               <string>1</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-
-           <item row="3" column="0"><widget class="QLabel" name="lblDirection"><property name="text"><string>Direction</string></property></widget></item>
-           <item row="3" column="1">
-            <widget class="QComboBox" name="comboDirection">
-             <item>
-              <property name="text">
-               <string>LTR</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>RTL</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="applyRow">
-           <item><widget class="QPushButton" name="btnApply"><property name="text"><string>Apply</string></property></widget></item>
-           <item><widget class="QPushButton" name="btnOff"><property name="text"><string>Turn Off</string></property></widget></item>
-          </layout>
-         </item>
-
-        </layout>
-       </widget>
-      </item>
-
-      <item>
-       <widget class="QGroupBox" name="grpZones">
-        <property name="title"><string>Zones (RRGGBB)</string></property>
-        <layout class="QGridLayout" name="gridZones">
-
-         <item row="0" column="0"><widget class="QLabel" name="lblZ1"><property name="text"><string>Zone 1</string></property></widget></item>
-         <item row="0" column="1"><widget class="QLineEdit" name="editZ1"><property name="placeholderText"><string>ff0000</string></property></widget></item>
-         <item row="0" column="2"><widget class="QPushButton" name="btnColor1"><property name="text"><string>Pick…</string></property></widget></item>
-
-         <item row="1" column="0"><widget class="QLabel" name="lblZ2"><property name="text"><string>Zone 2</string></property></widget></item>
-         <item row="1" column="1"><widget class="QLineEdit" name="editZ2"><property name="placeholderText"><string>00ff00</string></property></widget></item>
-         <item row="1" column="2"><widget class="QPushButton" name="btnColor2"><property name="text"><string>Pick…</string></property></widget></item>
-
-         <item row="2" column="0"><widget class="QLabel" name="lblZ3"><property name="text"><string>Zone 3</string></property></widget></item>
-         <item row="2" column="1"><widget class="QLineEdit" name="editZ3"><property name="placeholderText"><string>0000ff</string></property></widget></item>
-         <item row="2" column="2"><widget class="QPushButton" name="btnColor3"><property name="text"><string>Pick…</string></property></widget></item>
-
-         <item row="3" column="0"><widget class="QLabel" name="lblZ4"><property name="text"><string>Zone 4</string></property></widget></item>
-         <item row="3" column="1"><widget class="QLineEdit" name="editZ4"><property name="placeholderText"><string>ffffff</string></property></widget></item>
-         <item row="3" column="2"><widget class="QPushButton" name="btnColor4"><property name="text"><string>Pick…</string></property></widget></item>
-
-         <item row="4" column="0" colspan="3">
-          <widget class="QCheckBox" name="chkAutofill">
-           <property name="text"><string>Auto-fill remaining zones when fewer than 4 colors are given</string></property>
-           <property name="checked"><bool>true</bool></property>
+          <widget class="QLabel" name="lblAppTitle">
+            <property name="text">
+             <string>LegionAura</string>
+            </property>
           </widget>
          </item>
-
+         <item>
+          <spacer name="spacerTopLeft">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>18</width>
+              <height>0</height>
+             </size>
+            </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblDeviceLeft">
+            <property name="text">
+             <string>Device: (not connected)</string>
+            </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblDeviceName">
+            <property name="text">
+             <string></string>
+            </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="spacerTopRight">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnDetect">
+            <property name="text">
+             <string>Detect Device</string>
+            </property>
+          </widget>
+         </item>
         </layout>
-       </widget>
-      </item>
+      </widget>
+     </item>
 
-     </layout>
-    </item>
+     <!-- MAIN CONTENT -->
+     <item>
+      <layout class="QHBoxLayout" name="mainRow" stretch="3,1">
+        <property name="spacing">
+         <number>12</number>
+        </property>
 
-    <item>
-     <layout class="QHBoxLayout" name="bottomBar">
-      <item>
-       <widget class="QLabel" name="lblHint">
-        <property name="text"><string>Tip: Static/Breath use zone colors. Wave/Hue ignore zone colors.</string></property>
-       </widget>
-      </item>
-     </layout>
-    </item>
+        <!-- LEFT COLUMN (controls) -->
+        <item>
+         <layout class="QVBoxLayout" name="leftStack">
+          <property name="spacing">
+            <number>12</number>
+          </property>
 
-   </layout>
+          <item>
+            <widget class="QGroupBox" name="grpEffect">
+             <property name="title">
+              <string>Effect</string>
+             </property>
+             <layout class="QVBoxLayout" name="leftColumn">
+              <item>
+                <layout class="QFormLayout" name="formEffect">
+                 <property name="horizontalSpacing">
+                  <number>14</number>
+                 </property>
+                 <property name="verticalSpacing">
+                  <number>10</number>
+                 </property>
+
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="lblMode">
+                    <property name="text">
+                     <string>Mode</string>
+                    </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QComboBox" name="comboEffect">
+                    <item>
+                     <property name="text">
+                      <string>Static</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Breath</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Wave</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Hue</string>
+                     </property>
+                    </item>
+                  </widget>
+                 </item>
+
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="lblSpeed">
+                    <property name="text">
+                     <string>Speed</string>
+                    </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QComboBox" name="comboSpeed">
+                    <item><property name="text"><string>1</string></property></item>
+                    <item><property name="text"><string>2</string></property></item>
+                    <item><property name="text"><string>3</string></property></item>
+                    <item><property name="text"><string>4</string></property></item>
+                  </widget>
+                 </item>
+
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="lblBrightness">
+                    <property name="text">
+                     <string>Brightness</string>
+                    </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QComboBox" name="comboBrightness">
+                    <item><property name="text"><string>1</string></property></item>
+                    <item><property name="text"><string>2</string></property></item>
+                  </widget>
+                 </item>
+
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="lblDirection">
+                    <property name="text">
+                     <string>Direction</string>
+                    </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QComboBox" name="comboDirection">
+                    <item><property name="text"><string>LTR</string></property></item>
+                    <item><property name="text"><string>RTL</string></property></item>
+                  </widget>
+                 </item>
+                </layout>
+              </item>
+
+              <item>
+                <layout class="QHBoxLayout" name="applyRow">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="btnApply">
+                    <property name="text">
+                     <string>Apply</string>
+                    </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnOff">
+                    <property name="text">
+                     <string>Turn Off</string>
+                    </property>
+                  </widget>
+                 </item>
+                </layout>
+              </item>
+             </layout>
+            </widget>
+          </item>
+
+          <item>
+            <widget class="QGroupBox" name="grpZones">
+             <property name="title">
+              <string>Zones (RRGGBB)</string>
+             </property>
+             <layout class="QGridLayout" name="gridZones">
+              <property name="horizontalSpacing">
+                <number>10</number>
+              </property>
+              <property name="verticalSpacing">
+                <number>10</number>
+              </property>
+
+              <item row="0" column="0">
+                <widget class="QLabel" name="lblZ1">
+                 <property name="text"><string>Zone 1</string></property>
+                </widget>
+              </item>
+              <item row="0" column="1">
+                              <widget class="QLineEdit" name="editZ1">
+                               <property name="placeholderText"><string></string></property>
+                              </widget>
+              </item>
+              <item row="0" column="2">
+                <widget class="QPushButton" name="btnColor1">
+                 <property name="text"><string>Pick</string></property>
+                </widget>
+              </item>
+
+              <item row="1" column="0">
+                <widget class="QLabel" name="lblZ2">
+                 <property name="text"><string>Zone 2</string></property>
+                </widget>
+              </item>
+              <item row="1" column="1">
+                              <widget class="QLineEdit" name="editZ2">
+                               <property name="placeholderText"><string></string></property>
+                              </widget>
+              </item>
+              <item row="1" column="2">
+                <widget class="QPushButton" name="btnColor2">
+                 <property name="text"><string>Pick</string></property>
+                </widget>
+              </item>
+
+              <item row="2" column="0">
+                <widget class="QLabel" name="lblZ3">
+                 <property name="text"><string>Zone 3</string></property>
+                </widget>
+              </item>
+              <item row="2" column="1">
+                              <widget class="QLineEdit" name="editZ3">
+                               <property name="placeholderText"><string></string></property>
+                              </widget>
+              </item>
+              <item row="2" column="2">
+                <widget class="QPushButton" name="btnColor3">
+                 <property name="text"><string>Pick</string></property>
+                </widget>
+              </item>
+
+              <item row="3" column="0">
+                <widget class="QLabel" name="lblZ4">
+                 <property name="text"><string>Zone 4</string></property>
+                </widget>
+              </item>
+              <item row="3" column="1">
+                              <widget class="QLineEdit" name="editZ4">
+                               <property name="placeholderText"><string></string></property>
+                              </widget>
+              </item>
+              <item row="3" column="2">
+                <widget class="QPushButton" name="btnColor4">
+                 <property name="text"><string>Pick</string></property>
+                </widget>
+              </item>
+
+              <item row="4" column="0" colspan="3">
+                <widget class="QCheckBox" name="chkAutofill">
+                 <property name="text">
+                  <string>Auto-fill remaining zones when fewer than 4 colors are given</string>
+                 </property>
+                 <property name="checked"><bool>true</bool></property>
+                </widget>
+              </item>
+             </layout>
+            </widget>
+          </item>
+         </layout>
+        </item>
+
+        <!-- RIGHT COLUMN (preview) -->
+        <item>
+         <layout class="QVBoxLayout" name="rightStack">
+          <property name="spacing">
+           <number>12</number>
+          </property>
+          <item>
+           <widget class="QGroupBox" name="grpPreview">
+            <property name="title">
+             <string>Keyboard preview</string>
+            </property>
+            <property name="maximumSize">
+             <size>
+          <width>16777215</width>
+          <height>190</height>
+             </size>
+            </property>
+            <layout class="QVBoxLayout" name="previewColumn">
+             <property name="spacing">
+          <number>10</number>
+             </property>
+
+             <item>
+          <layout class="QHBoxLayout" name="keyboardRow">
+           <property name="spacing">
+            <number>8</number>
+           </property>
+
+           <item>
+            <widget class="QFrame" name="previewZ1">
+             <property name="minimumSize">
+              <size><width>50</width><height>90</height></size>
+             </property>
+             <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+             <layout class="QVBoxLayout" name="previewZ1Layout">
+              <item>
+               <widget class="QLabel" name="previewLblZ1">
+            <property name="text"><string>Z1</string></property>
+            <property name="alignment"><set>Qt::AlignCenter</set></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <item>
+            <widget class="QFrame" name="previewZ2">
+             <property name="minimumSize">
+              <size><width>50</width><height>90</height></size>
+             </property>
+             <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+             <layout class="QVBoxLayout" name="previewZ2Layout">
+              <item>
+               <widget class="QLabel" name="previewLblZ2">
+            <property name="text"><string>Z2</string></property>
+            <property name="alignment"><set>Qt::AlignCenter</set></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <item>
+            <widget class="QFrame" name="previewZ3">
+             <property name="minimumSize">
+              <size><width>50</width><height>90</height></size>
+             </property>
+             <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+             <layout class="QVBoxLayout" name="previewZ3Layout">
+              <item>
+               <widget class="QLabel" name="previewLblZ3">
+            <property name="text"><string>Z3</string></property>
+            <property name="alignment"><set>Qt::AlignCenter</set></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <item>
+            <widget class="QFrame" name="previewZ4">
+             <property name="minimumSize">
+              <size><width>50</width><height>90</height></size>
+             </property>
+             <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+             <layout class="QVBoxLayout" name="previewZ4Layout">
+              <item>
+               <widget class="QLabel" name="previewLblZ4">
+            <property name="text"><string>Z4</string></property>
+            <property name="alignment"><set>Qt::AlignCenter</set></property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+          </layout>
+             </item>
+
+             <item>
+          <widget class="QLabel" name="lblHint">
+           <property name="text">
+            <string>Tip: Static/Breath use zone colors. Wave/Hue ignore zone colors.</string>
+           </property>
+           <property name="wordWrap"><bool>true</bool></property>
+          </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+
+          <item>
+           <spacer name="rightSpacer">
+            <property name="orientation"><enum>Qt::Vertical</enum></property>
+            <property name="sizeHint" stdset="0">
+             <size><width>0</width><height>0</height></size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+      </layout>
+     </item>
+
+     <item>
+      <spacer name="bottomSpacer">
+        <property name="orientation"><enum>Qt::Vertical</enum></property>
+        <property name="sizeHint" stdset="0">
+         <size><width>0</width><height>0</height></size>
+        </property>
+      </spacer>
+     </item>
+    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>

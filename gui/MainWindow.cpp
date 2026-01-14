@@ -12,6 +12,7 @@
 #include <QPalette>
 #include <QStyleFactory>
 #include <QTimer>
+#include <QFrame>
 #include <unordered_map>
 
 // ------------------------------------------------------------------
@@ -59,6 +60,31 @@ MainWindow::MainWindow(QWidget *parent)
     dark.setColor(QPalette::HighlightedText, Qt::black);
     qApp->setPalette(dark);
 
+    // Simple modern styling (keep it subtle; no new UX/features).
+    qApp->setStyleSheet(
+        "QLabel#lblAppTitle { font-size: 22px; font-weight: 700; }"
+        "QGroupBox { border: 1px solid #2b2b2b; border-radius: 12px; margin-top: 10px; }"
+        "QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #cfcfcf; }"
+        "QLineEdit, QComboBox { background: #161616; border: 1px solid #333; border-radius: 8px; padding: 6px 10px; }"
+        "QComboBox::drop-down { border: 0px; }"
+        "QPushButton { background: #2d2d2d; border: 1px solid #3a3a3a; border-radius: 10px; padding: 8px 12px; }"
+        "QPushButton:hover { background: #3a3a3a; }"
+        "QPushButton:pressed { background: #242424; }"
+        "QPushButton#btnApply { background: #2d4b8a; border-color: #2d4b8a; }"
+        "QPushButton#btnApply:hover { background: #365aa6; }"
+        "QPushButton:disabled { color: #777; background: #222; border-color: #2b2b2b; }"
+        "QFrame#previewZ1, QFrame#previewZ2, QFrame#previewZ3, QFrame#previewZ4 { border-radius: 12px; }"
+    );
+
+    // Subtle bottom-right link
+    if (ui->statusbar) {
+        auto *github = new QLabel("<a href=\"https://github.com/nivedck\">github.com/nivedck</a>");
+        github->setOpenExternalLinks(true);
+        github->setTextInteractionFlags(Qt::TextBrowserInteraction);
+        github->setStyleSheet("QLabel { color: #777; font-size: 11px; } QLabel:hover { text-decoration: underline; }");
+        ui->statusbar->addPermanentWidget(github);
+    }
+
     
     connect(ui->btnDetect, &QPushButton::clicked, this, &MainWindow::onDetectClicked);
     connect(ui->btnApply,  &QPushButton::clicked, this, &MainWindow::onApplyClicked);
@@ -72,10 +98,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->comboEffect, qOverload<int>(&QComboBox::currentIndexChanged),
             this, &MainWindow::onEffectChanged);
 
+    // Live preview updates when typing colors
+    connect(ui->editZ1, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
+    connect(ui->editZ2, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
+    connect(ui->editZ3, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
+    connect(ui->editZ4, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
+
     // Initial UI state
     onEffectChanged(ui->comboEffect->currentIndex());
     ui->lblDeviceLeft->setText("Device: (not connected)");
     ui->lblDeviceName->setText("");
+
+    updatePreview();
 }
 
 MainWindow::~MainWindow()
@@ -175,6 +209,16 @@ void MainWindow::setBtnSwatch(QPushButton* btn, const QString& hex)
     );
 }
 
+void MainWindow::setPreviewSwatch(QWidget* w, const QString& hex, bool enabled)
+{
+    const bool hasColor = enabled && !hex.isEmpty();
+    const QString bg = enabled
+        ? (hasColor ? QString("#%1").arg(hex) : QString("transparent"))
+        : QString("#202020");
+    const QString border = enabled ? QString("#3a3a3a") : QString("#2b2b2b");
+    w->setStyleSheet(QString("background-color: %1; border: 1px solid %2; border-radius: 12px;").arg(bg, border));
+}
+
 // ------------------------------------------------------------------
 // Zone pickers
 // ------------------------------------------------------------------
@@ -233,6 +277,56 @@ void MainWindow::onEffectChanged(int idx)
     ui->chkAutofill->setEnabled(needsColors);
 
     ui->comboDirection->setEnabled(needsDir);
+
+    if (ui->grpPreview)
+        ui->grpPreview->setEnabled(needsColors);
+
+    updatePreview();
+}
+
+void MainWindow::updatePreview()
+{
+    const QString mode = ui->comboEffect->currentText().toLower();
+    const bool needsColors = (mode == "static" || mode == "breath");
+
+    auto normalizeHex = [&](QLineEdit* edit) -> QString {
+        QString hex = edit->text().trimmed().toLower();
+        if (hex.startsWith('#')) hex = hex.mid(1);
+        return hex;
+    };
+
+    auto updateOne = [&](QLineEdit* edit, QPushButton* btn, QWidget* frame) {
+        const QString hex = normalizeHex(edit);
+
+        if (!needsColors) {
+            btn->setStyleSheet(QString());
+            setPreviewSwatch(frame, QString(), false);
+            return;
+        }
+
+        if (hex.isEmpty()) {
+            // No color selected: show no color.
+            btn->setStyleSheet(QString());
+            setPreviewSwatch(frame, QString(), true);
+            return;
+        }
+
+        auto rgb = hexToRgb(hex);
+        if (!rgb) {
+            // Invalid input: treat as no color (don't keep stale swatches).
+            btn->setStyleSheet(QString());
+            setPreviewSwatch(frame, QString(), true);
+            return;
+        }
+
+        setPreviewSwatch(frame, hex, true);
+        setBtnSwatch(btn, hex);
+    };
+
+    updateOne(ui->editZ1, ui->btnColor1, ui->previewZ1);
+    updateOne(ui->editZ2, ui->btnColor2, ui->previewZ2);
+    updateOne(ui->editZ3, ui->btnColor3, ui->previewZ3);
+    updateOne(ui->editZ4, ui->btnColor4, ui->previewZ4);
 }
 
 // ------------------------------------------------------------------
@@ -282,9 +376,14 @@ std::optional<LAParams> MainWindow::buildParamsFromUi() const
 
         if (cols.empty()) return std::nullopt;
 
-        auto normalized = ui->chkAutofill->isChecked()
-                        ? normalize4(cols)
-                        : std::array<QString,4>{cols[0], cols[1], cols[2], cols[3]};
+        std::array<QString,4> normalized;
+        if (ui->chkAutofill->isChecked()) {
+            normalized = normalize4(cols);
+        } else {
+            // Without autofill, require all 4 zones to be provided to avoid out-of-range access.
+            if (cols.size() != 4) return std::nullopt;
+            normalized = {cols[0], cols[1], cols[2], cols[3]};
+        }
 
         for (int i = 0; i < 4; i++) {
             auto c = hexToRgb(normalized[i]);
