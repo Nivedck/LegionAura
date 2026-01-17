@@ -45,4 +45,4 @@ install(FILES icons/legionaura.png
 # Auto-apply last settings on graphical login (XDG autostart)
 # ------------------------------------------------------
 install(FILES legionaura-autostart.desktop
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/xdg/autostart)
+        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/xdg/autostart)
