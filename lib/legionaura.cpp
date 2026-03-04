@@ -562,7 +562,14 @@ std::vector<uint8_t> LegionAura::buildPayload(const LAParams& p) {
 
     bool needsColors = (eff == LAEffect::Static || eff == LAEffect::Breath);
     if (needsColors) {
-        for (auto& z : p.zones) { d.push_back(z.r); d.push_back(z.g); d.push_back(z.b); }
+        const bool softDim = (bright == 1);
+        const float scale = softDim ? 0.6f : 1.0f;
+        for (auto& z : p.zones) {
+            const uint8_t r = softDim ? clampByte((int)(z.r * scale)) : z.r;
+            const uint8_t g = softDim ? clampByte((int)(z.g * scale)) : z.g;
+            const uint8_t b = softDim ? clampByte((int)(z.b * scale)) : z.b;
+            d.push_back(r); d.push_back(g); d.push_back(b);
+        }
     } else {
         d.insert(d.end(), 12, 0x00);
     }
