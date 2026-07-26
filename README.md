@@ -78,7 +78,7 @@ Installed files (typical):
 - Desktop entry in `/usr/share/applications`
 - Icon in `/usr/share/icons/hicolor/256x256/apps`
 - Device list in `/usr/share/legionaura/devices.json`
-- udev rule in `/usr/lib/udev/rules.d/10-legionaura.rules`
+- udev rule in `/usr/lib/udev/rules.d/60-legionaura.rules`
 - Autostart entry in `/usr/share/xdg/autostart/legionaura-autostart.desktop`
 
 ### udev rules (recommended)

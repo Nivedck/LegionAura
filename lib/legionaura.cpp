@@ -378,7 +378,7 @@ bool LegionAura::open() {
                 "  1) Run the command with sudo:\n"
                 "       sudo legionaura <command>\n\n"
                 "  2) Or install the udev rules for non-root access:\n"
-                "       sudo cp udev/10-legionaura.rules /etc/udev/rules.d/\n"
+                "       sudo cp udev/60-legionaura.rules /etc/udev/rules.d/\n"
                 "       sudo udevadm control --reload-rules\n"
                 "       sudo udevadm trigger\n\n"
                 "After installing the rules, unplug and reconnect the keyboard.\n";

@@ -24,7 +24,7 @@ install(FILES devices/devices.json
 # Install udev rules for non-root USB access
 # ------------------------------------------------------
 # Packages must install to /usr/lib/udev/rules.d
-install(FILES udev/10-legionaura.rules
+install(FILES udev/60-legionaura.rules
         DESTINATION /usr/lib/udev/rules.d)
 
 # Auto-reload udev rules after install
