@@ -18,7 +18,7 @@ add_subdirectory(gui)
 # Install runtime data
 # ------------------------------------------------------
 install(FILES devices/devices.json
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/legionaura)
+        DESTINATION /usr/share/legionaura)
 
 # ------------------------------------------------------
 # Install udev rules for non-root USB access
@@ -45,4 +45,4 @@ install(FILES icons/legionaura.png
 # Auto-apply last settings on graphical login (XDG autostart)
 # ------------------------------------------------------
 install(FILES legionaura-autostart.desktop
-        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/xdg/autostart)
+        DESTINATION /usr/share/xdg/autostart)
