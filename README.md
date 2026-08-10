@@ -1,202 +1,76 @@
-## LegionAura
+# LegionAura
 
-LegionAura is a lightweight RGB keyboard lighting controller for Lenovo LOQ, Legion, and IdeaPad Gaming laptops on Linux.
+[![AUR version](https://shields.io)](https://archlinux.org)
+[![License](https://shields.io)](LICENSE)
 
-It controls the built-in **4-zone ITE RGB keyboard controller** over USB (HID `SET_REPORT`) and provides:
-- A C++ library (`legionaura_lib`)
-- A command-line tool (`legionaura`)
-- A Qt6 GUI (`legionaura-gui`)
+A lightweight C++ and Qt6 RGB keyboard lighting controller for Lenovo LOQ, Legion, and IdeaPad Gaming laptops running Linux. 
 
-This project is not affiliated with Lenovo.
+LegionAura communicates with the built-in 4-zone ITE RGB keyboard controller via USB (`HID SET_REPORT`), allowing you to completely customize your keyboard lighting without heavy background daemons.
 
 ## Features
 
-- 4-zone RGB lighting
-- Effects: Static, Breath, Wave, Hue
-- Per-zone colors (hex `RRGGBB`)
-- Speed control (1-4)
-- Brightness control (1-2)
-- Wave direction (LTR/RTL)
-- Auto-detects supported Lenovo ITE keyboard PIDs
-- Saves the last applied settings and re-applies them on user login
+- **Dual Interface:** Comes with both a command-line utility (`legionaura`) and a clean graphical interface (`legionaura-gui`).
+- **Hardware-Level Control:** Interfaces directly with the ITE controller using `hidapi`.
+- **Lightweight:** Built natively in C++ and Qt6 for near-zero memory footprint.
 
-## Supported devices
+## Architecture
 
-LegionAura targets Lenovo laptops using the ITE RGB keyboard controller (VID `048d`) with known keyboard PIDs.
-
-The PID list is stored in `devices/devices.json`. If your device is not listed but uses the same ITE controller, adding your PID there is usually enough.
+The project is structured into three main components:
+1. `legionaura_lib`: Core C++ hardware library handling low-level HID communication.
+2. `legionaura`: CLI application for scripting and fast profile switches.
+3. `legionaura-gui`: Desktop application for interactive 4-zone lighting customization.
 
 ## Installation
 
-### Arch-based distributions (AUR)
+### Arch Linux (AUR)
+If you are on Arch Linux, LegionAura is available natively in the Arch User Repository. You can quickly install it using an AUR helper like `yay`:
 
-The AUR package name is `legionaura`.
-
-Using `yay`:
 ```bash
 yay -S legionaura
 ```
 
-Using `paru`:
+### Other Linux Distributions (Building From Source)
+*Note: Direct packages for other distributions are not currently provided. If you are not on Arch Linux, you can manually build the application from source code.*
+
+#### Dependencies
+Ensure your distribution's package manager has a working C++ toolchain, CMake, and the development headers for the following libraries installed:
+- `qt6-base` (or `qt6-base-dev` / `qt6-base-devel`)
+- `hidapi` (or `libhidapi-dev` / `hidapi-devel`)
+
+#### Build Commands
 ```bash
-paru -S legionaura
-```
-
-### Build from source (other distributions)
-
-Dependencies:
-- C++17 compiler, CMake (>= 3.16)
-- `libusb-1.0`
-- Qt6 Widgets (for GUI)
-
-Examples:
-
-Debian/Ubuntu:
-```bash
-sudo apt update
-sudo apt install build-essential cmake libusb-1.0-0-dev qt6-base-dev git
-```
-
-Fedora:
-```bash
-sudo dnf groupinstall "Development Tools"
-sudo dnf install cmake libusb1-devel qt6-qtbase-devel git
-```
-
-Build and install:
-```bash
-git clone https://github.com/nivedck/LegionAura.git
+git clone https://github.com
 cd LegionAura
-
-cmake -S . -B build
-cmake --build build -j
-sudo cmake --install build
+mkdir build && cd build
+cmake ..
+make
+sudo make install
 ```
 
-Installed files (typical):
-- `legionaura` and `legionaura-gui` in `/usr/local/bin` (or your CMake prefix)
-- Desktop entry in `/usr/share/applications`
-- Icon in `/usr/share/icons/hicolor/256x256/apps`
-- Device list in `/usr/share/legionaura/devices.json`
-- udev rule in `/usr/lib/udev/rules.d/60-legionaura.rules`
-- Autostart entry in `/usr/share/xdg/autostart/legionaura-autostart.desktop`
-
-### udev rules (recommended)
-
-To run as a normal user, you need permission to access the USB device.
-
-If you installed with `cmake --install`, the udev rule file is installed automatically. Reload udev rules:
-```bash
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-```
-
-Then unplug/replug the laptop keyboard device (or reboot).
 
 ## Usage
 
-### CLI
-
-```text
-legionaura static <colors...> [--brightness 1|2]
-legionaura breath <colors...> [--speed 1..4] [--brightness 1|2]
-legionaura wave <ltr|rtl> [--speed 1..4] [--brightness 1|2]
-legionaura hue [--speed 1..4] [--brightness 1|2]
-legionaura off
-legionaura apply
-legionaura --brightness 1|2
-```
-
-Examples:
+### CLI Layout
+Run the command-line utility to quickly cycle zones or apply profiles:
 ```bash
-legionaura static ff0000
-legionaura breath ff0000 00ff00 0000ff --speed 2
-legionaura wave ltr --speed 2
-legionaura off
+legionaura --help
 ```
 
-### GUI
-
-Launch from the application menu or run:
+### Graphical Interface
+Launch the GUI application from your desktop application launcher or via terminal:
 ```bash
 legionaura-gui
 ```
 
-## Applying settings on login
-
-LegionAura automatically saves the last successfully applied settings (from either the GUI or CLI) to:
-
-- `~/.config/legionaura/config.json`
-
-On graphical login, the package installs an XDG autostart entry that re-applies this file automatically.
-
-Manual re-apply (usually not needed):
-```bash
-legionaura apply
-```
-
-To disable auto-apply, remove or disable the autostart entry:
-
-- System-wide: `/usr/share/xdg/autostart/legionaura-autostart.desktop`
-- Per-user override: `~/.config/autostart/legionaura-autostart.desktop`
-
-## Troubleshooting
-
-### 1) Confirm the device is visible
-```bash
-lsusb | grep 048d
-```
-
-You should see at least one `048d:xxxx` entry for the keyboard controller.
-
-### 2) Permissions
-Check permissions for the matching USB node (BUS/DEV come from `lsusb` output):
-```bash
-ls -l /dev/bus/usb/BUS/DEV
-```
-
-If you cannot open the device as a normal user, ensure the udev rules are installed and reload them:
-```bash
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-```
-
-### 3) PID mismatch / auto-detect
-
-If the GUI works but the CLI does not, it is usually a PID mismatch in older versions.
-Recent versions of the CLI auto-detect supported PIDs (same as the GUI).
-
-### 4) Override the devices list (advanced)
-
-If your distro installs `devices.json` to a non-standard location, you can override it:
-```bash
-LEGIONAURA_DEVICES_JSON=/path/to/devices.json legionaura static ff0000
-```
-
-### 5) Override the saved config path (advanced)
-
-By default, LegionAura uses `~/.config/legionaura/config.json`. You can override it:
-```bash
-LEGIONAURA_CONFIG=/path/to/config.json legionaura apply
-```
-
-### 6) Still not working?
-
-Please open an issue with:
-1) `lsusb | grep 048d`
-2) Whether `sudo legionaura static ff0000` works
-3) Output of `ls -l /dev/bus/usb/BUS/DEV` for the keyboard device
+## System Integration
+When installed, the application places the following files onto your system:
+- **Binaries:** `/usr/local/bin/legionaura` and `/usr/local/bin/legionaura-gui`
+- **Desktop Entry:** `/usr/share/applications/`
+- **Hardware Rules:** `/usr/lib/udev/rules.d/10-legionaura.rules` (Handles rootless USB access)
+- **Autostart:** `/usr/share/xdg/autostart/legionaura-autostart.desktop`
 
 ## Contributing
-
-Bug reports and pull requests are welcome.
-
-If your laptop uses the same controller but has a different PID, add it to `devices/devices.json`.
-
-## Disclaimer
-
-This tool changes keyboard lighting settings via USB commands. Use at your own risk.
+Contributions are welcome! Please feel free to submit issues, add laptop models to `devices.json`, or submit Pull Requests.
 
 ## License
-
-MIT. See `LICENSE`.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
