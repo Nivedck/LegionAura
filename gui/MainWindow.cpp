@@ -1,4 +1,4 @@
-// /LegionAura/gui/MainWindow.cpp
+// /Legionaura/gui/MainWindow.cpp
 //Nivedck
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
@@ -13,6 +13,7 @@
 #include <QStyleFactory>
 #include <QTimer>
 #include <QFrame>
+#include <QCoreApplication>
 #include <unordered_map>
 
 // ------------------------------------------------------------------
@@ -21,7 +22,6 @@
 static QString resolveDeviceName(uint16_t pid)
 {
     static const std::unordered_map<uint16_t, QString> names = {
-        // From devices/devices.json
         {0xC995, "Lenovo Legion Pro"},
         {0xC994, "Lenovo Legion Regular/Slim"},
         {0xC993, "Lenovo LOQ"},
@@ -33,8 +33,6 @@ static QString resolveDeviceName(uint16_t pid)
         {0xC965, "Lenovo Legion Pro/Regular"},
         {0xC963, "Lenovo IdeaPad Gaming"},
         {0xC955, "Lenovo Legion Pro/Regular"},
-
-        // Legacy/extra (not currently in devices.json)
         {0xC996, "Lenovo Legion"},
     };
 
@@ -47,9 +45,6 @@ static QString resolveDeviceName(uint16_t pid)
 
 static void setDeviceStatusText(Ui::MainWindow* ui, const QString& deviceName, bool connected)
 {
-    const QString nameRaw = deviceName.trimmed();
-    const QString name = nameRaw;
-
     if (!connected) {
         ui->lblDeviceLeft->setText("Not connected");
         ui->lblDeviceName->setText(QString());
@@ -58,7 +53,7 @@ static void setDeviceStatusText(Ui::MainWindow* ui, const QString& deviceName, b
         return;
     }
 
-    ui->lblDeviceLeft->setText(name.isEmpty() ? QString("Connected") : QString("%1").arg(name));
+    ui->lblDeviceLeft->setText(deviceName.isEmpty() ? QString("Connected") : QString("%1").arg(deviceName.trimmed()));
     ui->lblDeviceName->setText(QString());
     ui->lblDeviceStatusIcon->setStyleSheet("color: #4CAF50;"); // Green dot
     if (ui->lblDeviceName) ui->lblDeviceName->hide();
@@ -110,6 +105,7 @@ MainWindow::MainWindow(QWidget *parent)
         "QSlider::handle:horizontal { background: #007acc; border: 1px solid #0098ff; width: 14px; margin: -5px 0; border-radius: 7px; }"
         "QFrame#cardZ1, QFrame#cardZ2, QFrame#cardZ3, QFrame#cardZ4 { background: #1c1c1e; border: 1px solid #2a2a2c; border-radius: 8px; padding: 4px; }"
         "QPushButton#btnColor1, QPushButton#btnColor2, QPushButton#btnColor3, QPushButton#btnColor4 { border-radius: 4px; border: 1px solid #3a3a40; }"
+        "QPushButton#btnAccentSwatch { border-radius: 8px; border: 2px solid #555; font-size: 14px; font-weight: bold; color: white; background: #242428; }"
     );
 
     if (ui->statusbar) {
@@ -148,9 +144,16 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->editZ3, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
     connect(ui->editZ4, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
 
+    connect(ui->btnModeCustom, &QPushButton::clicked, this, &MainWindow::onAccentModeCustom);
+    connect(ui->btnModeAccent, &QPushButton::clicked, this, &MainWindow::onAccentModeDesktop);
+    connect(ui->btnAccentRefresh, &QPushButton::clicked, this, &MainWindow::onAccentRefresh);
+
     ui->btnEffectStatic->setChecked(true);
     onEffectChanged(0);
     onSliderChanged();
+    
+    // Default to Custom Mode
+    onAccentModeCustom();
 
     setDeviceStatusText(ui, QString(), false);
     ui->lblDeviceName->hide();
@@ -195,6 +198,49 @@ void MainWindow::autoDetectOnStartup()
         setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
         setStatusOk("Device auto-detected");
     }
+}
+
+// ------------------------------------------------------------------
+// Accent Modes
+// ------------------------------------------------------------------
+void MainWindow::onAccentModeCustom()
+{
+    m_desktopAccentMode = false;
+    ui->zonesStackedWidget->setCurrentIndex(0);
+    ui->btnModeCustom->setChecked(true);
+    updatePreview();
+}
+
+void MainWindow::onAccentModeDesktop()
+{
+    m_desktopAccentMode = true;
+    ui->zonesStackedWidget->setCurrentIndex(1);
+    ui->btnModeAccent->setChecked(true);
+    onAccentRefresh();
+}
+
+void MainWindow::onAccentRefresh()
+{
+    if (!m_desktopAccentMode) return;
+    
+    ui->btnAccentSwatch->setText("Detecting...");
+    ui->btnAccentSwatch->setStyleSheet("background: #242428; border: 2px solid #555; border-radius: 8px; font-size: 14px; font-weight: bold; color: white;");
+    QCoreApplication::processEvents();
+    
+    m_lastAccentResult = m_accentManager.detectAccentColor();
+    
+    if (m_lastAccentResult.found && !m_lastAccentResult.colorHex.isEmpty()) {
+        ui->btnAccentSwatch->setText(m_lastAccentResult.colorHex);
+        QString hex = m_lastAccentResult.colorHex;
+        if (hex.startsWith('#')) hex = hex.mid(1);
+        ui->btnAccentSwatch->setStyleSheet(
+            QString("background-color: #%1; border: 2px solid #aaa; border-radius: 8px; font-size: 16px; font-weight: bold; color: white;").arg(hex)
+        );
+    } else {
+        ui->btnAccentSwatch->setText("Not Found");
+    }
+    
+    updatePreview();
 }
 
 // ------------------------------------------------------------------
@@ -302,6 +348,14 @@ void MainWindow::onEffectChanged(int idx)
     bool needsColors = (mode == "static" || mode == "breath");
     bool needsDir    = (mode == "wave");
 
+    // Show the accent toggle for both Static and Breath modes
+    ui->btnModeCustom->setVisible(needsColors);
+    ui->btnModeAccent->setVisible(needsColors);
+    
+    if (!needsColors && m_desktopAccentMode) {
+        onAccentModeCustom();
+    }
+
     ui->editZ1->setEnabled(needsColors);
     ui->editZ2->setEnabled(needsColors);
     ui->editZ3->setEnabled(needsColors);
@@ -335,6 +389,28 @@ void MainWindow::updatePreview()
     }
     bool needsColors = (mode == "static" || mode == "breath");
 
+    if (!needsColors) {
+        for (int i=0; i<4; i++) ui->keyboardPreviewWidget->setZoneColor(i, QColor(0,0,0));
+        return;
+    }
+
+    if (m_desktopAccentMode) {
+        if (m_lastAccentResult.found) {
+            QString hex = m_lastAccentResult.colorHex;
+            if (hex.startsWith('#')) hex = hex.mid(1);
+            auto rgb = hexToRgb(hex);
+            QColor c = rgb ? *rgb : QColor(0,0,0);
+            for (int i = 0; i < 4; ++i) {
+                ui->keyboardPreviewWidget->setZoneColor(i, c);
+            }
+        } else {
+            for (int i = 0; i < 4; ++i) {
+                ui->keyboardPreviewWidget->setZoneColor(i, QColor(0,0,0));
+            }
+        }
+        return;
+    }
+
     auto normalizeHex = [&](QLineEdit* edit) -> QString {
         QString hex = edit->text().trimmed().toLower();
         if (hex.startsWith('#')) hex = hex.mid(1);
@@ -343,13 +419,6 @@ void MainWindow::updatePreview()
 
     auto updateOne = [&](QLineEdit* edit, QPushButton* btn, int zoneIndex) {
         const QString hex = normalizeHex(edit);
-
-        if (!needsColors) {
-            btn->setStyleSheet(QString());
-            ui->keyboardPreviewWidget->setZoneColor(zoneIndex, QColor(0,0,0));
-            return;
-        }
-
         if (hex.isEmpty()) {
             btn->setStyleSheet(QString());
             ui->keyboardPreviewWidget->setZoneColor(zoneIndex, QColor(0,0,0));
@@ -419,32 +488,45 @@ std::optional<LAParams> MainWindow::buildParamsFromUi() const
     }
 
     if (p.effect == LAEffect::Static || p.effect == LAEffect::Breath) {
-        std::vector<QString> cols;
-
-        if (!ui->editZ1->text().isEmpty()) cols.push_back(ui->editZ1->text());
-        if (!ui->editZ2->text().isEmpty()) cols.push_back(ui->editZ2->text());
-        if (!ui->editZ3->text().isEmpty()) cols.push_back(ui->editZ3->text());
-        if (!ui->editZ4->text().isEmpty()) cols.push_back(ui->editZ4->text());
-
-        if (cols.empty()) return std::nullopt;
-
-        std::array<QString,4> normalized;
-        if (ui->chkAutofill->isChecked()) {
-            normalized = normalize4(cols);
-        } else {
-            // Without autofill, require all 4 zones to be provided to avoid out-of-range access.
-            if (cols.size() != 4) return std::nullopt;
-            normalized = {cols[0], cols[1], cols[2], cols[3]};
-        }
-
-        for (int i = 0; i < 4; i++) {
-            auto c = hexToRgb(normalized[i]);
+        if (m_desktopAccentMode) {
+            if (!m_lastAccentResult.found || m_lastAccentResult.colorHex.isEmpty()) 
+                return std::nullopt;
+            
+            QString hex = m_lastAccentResult.colorHex;
+            if (hex.startsWith('#')) hex = hex.mid(1);
+            
+            auto c = hexToRgb(hex);
             if (!c) return std::nullopt;
-            p.zones[i] = LAColor{
-                (uint8_t)c->red(),
-                (uint8_t)c->green(),
-                (uint8_t)c->blue()
-            };
+            
+            LAColor lac{(uint8_t)c->red(), (uint8_t)c->green(), (uint8_t)c->blue()};
+            p.zones = {lac, lac, lac, lac};
+        } else {
+            std::vector<QString> cols;
+
+            if (!ui->editZ1->text().isEmpty()) cols.push_back(ui->editZ1->text());
+            if (!ui->editZ2->text().isEmpty()) cols.push_back(ui->editZ2->text());
+            if (!ui->editZ3->text().isEmpty()) cols.push_back(ui->editZ3->text());
+            if (!ui->editZ4->text().isEmpty()) cols.push_back(ui->editZ4->text());
+
+            if (cols.empty()) return std::nullopt;
+
+            std::array<QString,4> normalized;
+            if (ui->chkAutofill->isChecked()) {
+                normalized = normalize4(cols);
+            } else {
+                if (cols.size() != 4) return std::nullopt;
+                normalized = {cols[0], cols[1], cols[2], cols[3]};
+            }
+
+            for (int i = 0; i < 4; i++) {
+                auto c = hexToRgb(normalized[i]);
+                if (!c) return std::nullopt;
+                p.zones[i] = LAColor{
+                    (uint8_t)c->red(),
+                    (uint8_t)c->green(),
+                    (uint8_t)c->blue()
+                };
+            }
         }
     }
 
@@ -469,7 +551,7 @@ void MainWindow::onApplyClicked()
 
     auto params = buildParamsFromUi();
     if (!params) {
-        setStatusErr("Invalid color values.");
+        setStatusErr("Invalid color values or no accent detected.");
         return;
     }
 

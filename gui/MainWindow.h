@@ -8,6 +8,7 @@
 #include <optional>
 #include "legionaura.h"
 #include <QButtonGroup>
+#include "accent/AccentManager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -46,6 +47,11 @@ private slots:
     // Slider updates
     void onSliderChanged();
 
+    // Accent modes
+    void onAccentModeCustom();
+    void onAccentModeDesktop();
+    void onAccentRefresh();
+
 private:
     std::optional<QString> pickHexColor(const QString &initialHex);
     static QString rgbToHex(const QColor &c);
@@ -66,4 +72,8 @@ private:
     LegionAura kb_;
     bool deviceReady_ = false;
     QButtonGroup* m_effectGroup = nullptr;
+    
+    AccentManager m_accentManager;
+    bool m_desktopAccentMode = false;
+    AccentColorResult m_lastAccentResult;
 };
