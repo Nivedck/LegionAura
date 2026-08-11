@@ -53,12 +53,14 @@ static void setDeviceStatusText(Ui::MainWindow* ui, const QString& deviceName, b
     if (!connected) {
         ui->lblDeviceLeft->setText("Not connected");
         ui->lblDeviceName->setText(QString());
+        ui->lblDeviceStatusIcon->setStyleSheet("color: #555555;"); // Grey dot
         if (ui->lblDeviceName) ui->lblDeviceName->hide();
         return;
     }
 
-    ui->lblDeviceLeft->setText(name.isEmpty() ? QString("Connected") : QString("%1 - Connected").arg(name));
+    ui->lblDeviceLeft->setText(name.isEmpty() ? QString("Connected") : QString("%1").arg(name));
     ui->lblDeviceName->setText(QString());
+    ui->lblDeviceStatusIcon->setStyleSheet("color: #4CAF50;"); // Green dot
     if (ui->lblDeviceName) ui->lblDeviceName->hide();
 }
 
@@ -74,38 +76,42 @@ MainWindow::MainWindow(QWidget *parent)
     // Auto-detect device shortly after app start
     QTimer::singleShot(100, this, &MainWindow::autoDetectOnStartup);
 
-    
     qApp->setStyle(QStyleFactory::create("Fusion"));
     QPalette dark;
-    dark.setColor(QPalette::Window, QColor(30,30,30));
+    dark.setColor(QPalette::Window, QColor(24,24,27));
     dark.setColor(QPalette::WindowText, Qt::white);
-    dark.setColor(QPalette::Base, QColor(22,22,22));
-    dark.setColor(QPalette::AlternateBase, QColor(36,36,36));
+    dark.setColor(QPalette::Base, QColor(18,18,20));
+    dark.setColor(QPalette::AlternateBase, QColor(30,30,34));
     dark.setColor(QPalette::Text, Qt::white);
-    dark.setColor(QPalette::Button, QColor(45,45,45));
+    dark.setColor(QPalette::Button, QColor(36,36,40));
     dark.setColor(QPalette::ButtonText, Qt::white);
-    dark.setColor(QPalette::Highlight, QColor(100,150,255));
-    dark.setColor(QPalette::HighlightedText, Qt::black);
+    dark.setColor(QPalette::Highlight, QColor(0,122,204));
+    dark.setColor(QPalette::HighlightedText, Qt::white);
     qApp->setPalette(dark);
 
-    // Simple modern styling (keep it subtle; no new UX/features).
     qApp->setStyleSheet(
-        "QLabel#lblAppTitle { font-size: 22px; font-weight: 700; }"
-        "QLabel#lblDeviceLeft { font-size: 18px; font-weight: 650; }"
-        "QGroupBox { border: 1px solid #2b2b2b; border-radius: 12px; margin-top: 10px; }"
-        "QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #cfcfcf; }"
-        "QLineEdit, QComboBox { background: #161616; border: 1px solid #333; border-radius: 8px; padding: 6px 10px; }"
+        "QLabel#lblAppTitle { font-size: 24px; font-weight: bold; color: #ffffff; }"
+        "QLabel#lblDeviceLeft { font-size: 14px; font-weight: 500; color: #a0a0a5; }"
+        "QLabel#lblDeviceStatusIcon { font-size: 18px; }"
+        "QGroupBox { border: 1px solid #303036; border-radius: 8px; margin-top: 24px; font-weight: 600; font-size: 14px; color: #d0d0d5; }"
+        "QGroupBox::title { subcontrol-origin: margin; left: 16px; padding: 0 4px; }"
+        "QLineEdit, QComboBox { background: #121214; border: 1px solid #303036; border-radius: 6px; padding: 6px 10px; color: white; }"
         "QComboBox::drop-down { border: 0px; }"
-        "QPushButton { background: #2d2d2d; border: 1px solid #3a3a3a; border-radius: 10px; padding: 8px 12px; }"
-        "QPushButton:hover { background: #3a3a3a; }"
-        "QPushButton:pressed { background: #242424; }"
-        "QPushButton#btnApply { background: #2d4b8a; border-color: #2d4b8a; }"
-        "QPushButton#btnApply:hover { background: #365aa6; }"
-        "QPushButton:disabled { color: #777; background: #222; border-color: #2b2b2b; }"
-        "QFrame#previewZ1, QFrame#previewZ2, QFrame#previewZ3, QFrame#previewZ4 { border-radius: 12px; }"
+        "QPushButton { background: #242428; border: 1px solid #3a3a40; border-radius: 6px; padding: 8px 12px; font-weight: 500; color: white; }"
+        "QPushButton:hover { background: #2d2d33; }"
+        "QPushButton:pressed { background: #1c1c1f; }"
+        "QPushButton:checked { background: #007acc; border-color: #0098ff; color: white; font-weight: bold; }"
+        "QPushButton#btnApply { background: #007acc; border-color: #007acc; color: white; font-weight: bold; font-size: 16px; }"
+        "QPushButton#btnApply:hover { background: #0098ff; }"
+        "QPushButton#btnOff { background: #3d2222; border-color: #552b2b; color: #ffcccc; font-weight: bold; font-size: 16px; }"
+        "QPushButton#btnOff:hover { background: #552b2b; }"
+        "QPushButton:disabled { color: #666; background: #1a1a1c; border-color: #2a2a2c; }"
+        "QSlider::groove:horizontal { border: 1px solid #2a2a2c; height: 6px; background: #121214; margin: 2px 0; border-radius: 3px; }"
+        "QSlider::handle:horizontal { background: #007acc; border: 1px solid #0098ff; width: 14px; margin: -5px 0; border-radius: 7px; }"
+        "QFrame#cardZ1, QFrame#cardZ2, QFrame#cardZ3, QFrame#cardZ4 { background: #1c1c1e; border: 1px solid #2a2a2c; border-radius: 8px; padding: 4px; }"
+        "QPushButton#btnColor1, QPushButton#btnColor2, QPushButton#btnColor3, QPushButton#btnColor4 { border-radius: 4px; border: 1px solid #3a3a40; }"
     );
 
-    // Subtle bottom-right link
     if (ui->statusbar) {
         auto *github = new QLabel("<a href=\"https://github.com/nivedck\">github.com/nivedck</a>");
         github->setOpenExternalLinks(true);
@@ -114,7 +120,6 @@ MainWindow::MainWindow(QWidget *parent)
         ui->statusbar->addPermanentWidget(github);
     }
 
-    
     connect(ui->btnDetect, &QPushButton::clicked, this, &MainWindow::onDetectClicked);
     connect(ui->btnApply,  &QPushButton::clicked, this, &MainWindow::onApplyClicked);
     connect(ui->btnOff,    &QPushButton::clicked, this, &MainWindow::onOffClicked);
@@ -124,20 +129,31 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnColor3, &QPushButton::clicked, this, &MainWindow::onPickZ3);
     connect(ui->btnColor4, &QPushButton::clicked, this, &MainWindow::onPickZ4);
 
-    connect(ui->comboEffect, qOverload<int>(&QComboBox::currentIndexChanged),
-            this, &MainWindow::onEffectChanged);
+    m_effectGroup = new QButtonGroup(this);
+    m_effectGroup->addButton(ui->btnEffectStatic, 0);
+    m_effectGroup->addButton(ui->btnEffectBreath, 1);
+    m_effectGroup->addButton(ui->btnEffectWave, 2);
+    m_effectGroup->addButton(ui->btnEffectHue, 3);
+    m_effectGroup->addButton(ui->btnEffectOff, 4);
 
-    // Live preview updates when typing colors
+    connect(m_effectGroup, &QButtonGroup::idToggled, this, [this](int id, bool checked){
+        if(checked) onEffectChanged(id);
+    });
+
+    connect(ui->sliderSpeed, &QSlider::valueChanged, this, &MainWindow::onSliderChanged);
+    connect(ui->sliderBrightness, &QSlider::valueChanged, this, &MainWindow::onSliderChanged);
+
     connect(ui->editZ1, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
     connect(ui->editZ2, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
     connect(ui->editZ3, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
     connect(ui->editZ4, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
 
-    // Initial UI state
-    onEffectChanged(ui->comboEffect->currentIndex());
+    ui->btnEffectStatic->setChecked(true);
+    onEffectChanged(0);
+    onSliderChanged();
+
     setDeviceStatusText(ui, QString(), false);
     ui->lblDeviceName->hide();
-
     updatePreview();
 }
 
@@ -153,24 +169,18 @@ void MainWindow::onDetectClicked()
 {
     if (kb_.autoDetect()) {
         deviceReady_ = true;
-
         setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
-
         setStatusOk("Device connected");
         return;
     }
 
     if (kb_.open()) {
         deviceReady_ = true;
-
         setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
-
         setStatusOk("Device connected (default)");
     } else {
         deviceReady_ = false;
-
         setDeviceStatusText(ui, QString(), false);
-
         setStatusErr("Failed to open device. Try installing udev rules.");
     }
 }
@@ -182,9 +192,7 @@ void MainWindow::autoDetectOnStartup()
 {
     if (kb_.autoDetect()) {
         deviceReady_ = true;
-
         setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
-
         setStatusOk("Device auto-detected");
     }
 }
@@ -228,18 +236,8 @@ std::optional<QColor> MainWindow::hexToRgb(const QString &hex)
 void MainWindow::setBtnSwatch(QPushButton* btn, const QString& hex)
 {
     btn->setStyleSheet(
-        QString("background-color: #%1; border: 1px solid #555;").arg(hex)
+        QString("background-color: #%1; border: 1px solid #555; border-radius: 4px;").arg(hex)
     );
-}
-
-void MainWindow::setPreviewSwatch(QWidget* w, const QString& hex, bool enabled)
-{
-    const bool hasColor = enabled && !hex.isEmpty();
-    const QString bg = enabled
-        ? (hasColor ? QString("#%1").arg(hex) : QString("transparent"))
-        : QString("#202020");
-    const QString border = enabled ? QString("#3a3a3a") : QString("#2b2b2b");
-    w->setStyleSheet(QString("background-color: %1; border: 1px solid %2; border-radius: 12px;").arg(bg, border));
 }
 
 // ------------------------------------------------------------------
@@ -278,11 +276,28 @@ void MainWindow::onPickZ4()
 }
 
 // ------------------------------------------------------------------
+// Sliders
+// ------------------------------------------------------------------
+void MainWindow::onSliderChanged()
+{
+    ui->lblSpeedVal->setText(QString::number(ui->sliderSpeed->value()));
+    ui->lblBrightVal->setText(QString::number(ui->sliderBrightness->value()));
+}
+
+// ------------------------------------------------------------------
 // Effect change handler
 // ------------------------------------------------------------------
 void MainWindow::onEffectChanged(int idx)
 {
-    QString mode = ui->comboEffect->itemText(idx).toLower();
+    QString mode;
+    switch (idx) {
+        case 0: mode = "static"; break;
+        case 1: mode = "breath"; break;
+        case 2: mode = "wave"; break;
+        case 3: mode = "hue"; break;
+        case 4: mode = "off"; break;
+        default: mode = "static"; break;
+    }
 
     bool needsColors = (mode == "static" || mode == "breath");
     bool needsDir    = (mode == "wave");
@@ -301,16 +316,24 @@ void MainWindow::onEffectChanged(int idx)
 
     ui->comboDirection->setEnabled(needsDir);
 
-    if (ui->grpPreview)
-        ui->grpPreview->setEnabled(needsColors);
+    ui->keyboardPreviewWidget->setMode(mode);
 
     updatePreview();
 }
 
 void MainWindow::updatePreview()
 {
-    const QString mode = ui->comboEffect->currentText().toLower();
-    const bool needsColors = (mode == "static" || mode == "breath");
+    int idx = m_effectGroup ? m_effectGroup->checkedId() : 0;
+    QString mode;
+    switch (idx) {
+        case 0: mode = "static"; break;
+        case 1: mode = "breath"; break;
+        case 2: mode = "wave"; break;
+        case 3: mode = "hue"; break;
+        case 4: mode = "off"; break;
+        default: mode = "static"; break;
+    }
+    bool needsColors = (mode == "static" || mode == "breath");
 
     auto normalizeHex = [&](QLineEdit* edit) -> QString {
         QString hex = edit->text().trimmed().toLower();
@@ -318,38 +341,36 @@ void MainWindow::updatePreview()
         return hex;
     };
 
-    auto updateOne = [&](QLineEdit* edit, QPushButton* btn, QWidget* frame) {
+    auto updateOne = [&](QLineEdit* edit, QPushButton* btn, int zoneIndex) {
         const QString hex = normalizeHex(edit);
 
         if (!needsColors) {
             btn->setStyleSheet(QString());
-            setPreviewSwatch(frame, QString(), false);
+            ui->keyboardPreviewWidget->setZoneColor(zoneIndex, QColor(0,0,0));
             return;
         }
 
         if (hex.isEmpty()) {
-            // No color selected: show no color.
             btn->setStyleSheet(QString());
-            setPreviewSwatch(frame, QString(), true);
+            ui->keyboardPreviewWidget->setZoneColor(zoneIndex, QColor(0,0,0));
             return;
         }
 
         auto rgb = hexToRgb(hex);
         if (!rgb) {
-            // Invalid input: treat as no color (don't keep stale swatches).
             btn->setStyleSheet(QString());
-            setPreviewSwatch(frame, QString(), true);
+            ui->keyboardPreviewWidget->setZoneColor(zoneIndex, QColor(0,0,0));
             return;
         }
 
-        setPreviewSwatch(frame, hex, true);
+        ui->keyboardPreviewWidget->setZoneColor(zoneIndex, *rgb);
         setBtnSwatch(btn, hex);
     };
 
-    updateOne(ui->editZ1, ui->btnColor1, ui->previewZ1);
-    updateOne(ui->editZ2, ui->btnColor2, ui->previewZ2);
-    updateOne(ui->editZ3, ui->btnColor3, ui->previewZ3);
-    updateOne(ui->editZ4, ui->btnColor4, ui->previewZ4);
+    updateOne(ui->editZ1, ui->btnColor1, 0);
+    updateOne(ui->editZ2, ui->btnColor2, 1);
+    updateOne(ui->editZ3, ui->btnColor3, 2);
+    updateOne(ui->editZ4, ui->btnColor4, 3);
 }
 
 // ------------------------------------------------------------------
@@ -364,17 +385,25 @@ std::array<QString,4> MainWindow::normalize4(const std::vector<QString> &in)
     return {in[0], in[1], in[2], in[3]};
 }
 
-// ----------------
 // ------------------------------------------------------------------
 // Build params from UI
 // ------------------------------------------------------------------
 std::optional<LAParams> MainWindow::buildParamsFromUi() const
 {
-    QString mode = ui->comboEffect->currentText().toLower();
+    int idx = m_effectGroup ? m_effectGroup->checkedId() : 0;
+    QString mode;
+    switch (idx) {
+        case 0: mode = "static"; break;
+        case 1: mode = "breath"; break;
+        case 2: mode = "wave"; break;
+        case 3: mode = "hue"; break;
+        case 4: mode = "off"; break;
+        default: mode = "static"; break;
+    }
 
     LAParams p;
-    p.speed      = ui->comboSpeed->currentText().toUInt();
-    p.brightness = ui->comboBrightness->currentText().toUInt();
+    p.speed      = ui->sliderSpeed->value();
+    p.brightness = ui->sliderBrightness->value();
     p.waveDir    = LAWaveDir::None;
 
     if (mode == "static")      p.effect = LAEffect::Static;
@@ -429,6 +458,12 @@ void MainWindow::onApplyClicked()
 {
     if (!deviceReady_) {
         setStatusErr("Device not connected.");
+        return;
+    }
+
+    int idx = m_effectGroup ? m_effectGroup->checkedId() : 0;
+    if (idx == 4) {
+        onOffClicked();
         return;
     }
 

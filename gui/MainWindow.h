@@ -7,6 +7,7 @@
 #include <array>
 #include <optional>
 #include "legionaura.h"
+#include <QButtonGroup>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -32,16 +33,18 @@ private slots:
 
     void autoDetectOnStartup();  //For auto detecting the device
 
-
     // Apply/Off
     void onApplyClicked();
     void onOffClicked();
 
     // Effect changes (enable/disable controls as needed)
-    void onEffectChanged(int index);
+    void onEffectChanged(int id);
 
     // Live preview updates
     void updatePreview();
+
+    // Slider updates
+    void onSliderChanged();
 
 private:
     std::optional<QString> pickHexColor(const QString &initialHex);
@@ -51,8 +54,6 @@ private:
     void setBtnSwatch(QPushButton* btn, const QString& hex);
     void setStatusOk(const QString& msg);
     void setStatusErr(const QString& msg);
-
-    void setPreviewSwatch(QWidget* w, const QString& hex, bool enabled);
 
     // Build LAParams from current UI state (with auto-fill if checked)
     std::optional<LAParams> buildParamsFromUi() const;
@@ -64,4 +65,5 @@ private:
     Ui::MainWindow *ui;
     LegionAura kb_;
     bool deviceReady_ = false;
+    QButtonGroup* m_effectGroup = nullptr;
 };

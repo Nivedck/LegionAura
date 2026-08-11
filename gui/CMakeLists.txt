@@ -19,6 +19,8 @@ add_executable(legionaura-gui
     MainWindow.cpp
     MainWindow.h
     MainWindow.ui
+    KeyboardPreview.cpp
+    KeyboardPreview.h
 )
 
 target_link_libraries(legionaura-gui
