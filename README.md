@@ -3,7 +3,10 @@
 [![AUR version](https://shields.io)](https://archlinux.org)
 [![License](https://shields.io)](LICENSE)
 
-A lightweight C++ and Qt6 RGB keyboard lighting controller for Lenovo LOQ, Legion, and IdeaPad Gaming laptops running Linux. 
+A lightweight C++ and Qt6 RGB keyboard lighting controller for Lenovo LOQ, Legion, and IdeaPad Gaming laptops running Linux.
+
+> [!WARNING]
+> **LegionAura is only compatible with laptops equipped with a 4-zone RGB keyboard.** It is **not compatible** with single-color/white backlit keyboards, 1-zone RGB keyboards, per-key RGB keyboards, or other keyboard configurations. Check your laptop's exact keyboard hardware before installing or using this tool.
 
 LegionAura communicates with the built-in 4-zone ITE RGB keyboard controller via USB (`HID SET_REPORT`), allowing you to completely customize your keyboard lighting without heavy background daemons.
 
@@ -12,6 +15,22 @@ LegionAura communicates with the built-in 4-zone ITE RGB keyboard controller via
 - **Dual Interface:** Comes with both a command-line utility (`legionaura`) and a clean graphical interface (`legionaura-gui`).
 - **Hardware-Level Control:** Interfaces directly with the ITE controller using `hidapi`.
 - **Lightweight:** Built natively in C++ and Qt6 for near-zero memory footprint.
+
+## Compatibility
+
+LegionAura is designed **exclusively for 4-zone RGB keyboards** controlled by a compatible ITE RGB controller.
+
+Before installing, verify that your laptop has a 4-zone RGB keyboard. Laptop model names alone are not sufficient to determine compatibility because the same model may be sold with different keyboard configurations.
+
+The following keyboard types are **not supported**:
+
+- Single-color or white backlit keyboards
+- 1-zone RGB keyboards
+- Per-key RGB keyboards
+- 3-zone RGB keyboards
+- Any keyboard without a compatible ITE RGB controller
+
+If you are unsure whether your device is compatible, check the exact keyboard configuration in your laptop's specifications or open an issue with your full laptop model and keyboard details before using LegionAura.
 
 ## Architecture
 
