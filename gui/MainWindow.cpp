@@ -202,6 +202,7 @@ void MainWindow::onDetectClicked()
 // ------------------------------------------------------------------
 void MainWindow::autoDetectOnStartup()
 {
+    m_screenSync.stop();
     if (kb_.autoDetect()) {
         deviceReady_ = true;
         setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);

@@ -13,6 +13,7 @@ LegionAura communicates with the built-in 4-zone ITE RGB keyboard controller via
 ## Features
 
 - **Dual Interface:** Comes with both a command-line utility (`legionaura`) and a clean graphical interface (`legionaura-gui`).
+- **Screen Sync:** Smoothly mirror four screen regions onto the four keyboard zones while the GUI is running.
 - **Hardware-Level Control:** Interfaces directly with the ITE controller using `hidapi`.
 - **Lightweight:** Built natively in C++ and Qt6 for near-zero memory footprint.
 
@@ -53,7 +54,7 @@ yay -S legionaura
 
 #### Dependencies
 Ensure your distribution's package manager has a working C++ toolchain, CMake, and the development headers for the following libraries installed:
-- `qt6-base` (or `qt6-base-dev` / `qt6-base-devel`)
+- Qt **6.5 or newer**: `qt6-base` and `qt6-multimedia` development packages (Ubuntu/Debian: `qt6-base-dev` and `qt6-multimedia-dev`)
 - `hidapi` (or `libhidapi-dev` / `hidapi-devel`)
 
 #### Build Commands
@@ -80,6 +81,25 @@ Launch the GUI application from your desktop application launcher or via termina
 ```bash
 legionaura-gui
 ```
+
+### Screen Sync
+
+Select **Screen Sync** and press **Apply**. On Wayland, choose a monitor in the desktop screen-sharing picker. On X11, the primary monitor is used. Each vertical quarter of that screen drives the matching keyboard zone, left to right. Colors blend smoothly, with at most 10 USB updates per second; the brightness slider remains available.
+
+Screen Sync needs the GUI running (minimized is fine). Switching effects, pressing Off, reconnecting, or closing the app stops capture. Closing leaves the last applied colors on the keyboard. Screen Sync does not replace your saved lighting profile or automatically request capture at login. Frames are processed in memory and are not saved.
+
+Wayland requires a working PipeWire service and an XDG Desktop Portal backend with ScreenCast support for your desktop (for example, `xdg-desktop-portal-gnome` on GNOME). Qt Multimedia must have its FFmpeg backend available. If screen sharing is denied or stopped, or a keyboard write fails, the status bar reports it; press Apply to retry after resolving the problem.
+
+### Development checks
+
+After building, run `ctest --test-dir build --output-on-failure` for synthetic color sampling and smoothing checks. For integration testing with a supported keyboard:
+
+- Display four distinct vertical color bands and confirm left-to-right mapping and the live preview.
+- Change to black and bright content; check smooth transitions and brightness adjustment.
+- Cancel the Wayland picker, stop sharing through the desktop, and retry with Apply.
+- While syncing, switch effects, press Off, reconnect, and close the app; confirm no later screen updates override the action.
+- Unplug the keyboard while syncing; confirm an error and a responsive GUI, then reconnect and retry.
+- Check both GNOME Wayland and X11, existing firmware effects, and saved-profile restoration. USB update rate and visual quality need validation on hardware.
 
 ## System Integration
 When installed, the application places the following files onto your system:

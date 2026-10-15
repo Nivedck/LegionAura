@@ -1,6 +1,7 @@
 #include "ScreenSync.h"
 #include <QGuiApplication>
 #include <QVideoFrame>
+#include <chrono>
 
 ScreenSync::ScreenSync(LegionAura &keyboard, QObject *parent)
     : QObject(parent), m_keyboard(keyboard)
@@ -11,12 +12,13 @@ ScreenSync::ScreenSync(LegionAura &keyboard, QObject *parent)
     m_timer.setTimerType(Qt::PreciseTimer);
     connect(&m_timer, &QTimer::timeout, this, &ScreenSync::tick);
     connect(&m_sink, &QVideoSink::videoFrameChanged, this, [this](const QVideoFrame &frame) {
-        // Convert only one frame per timer interval; never queue a backlog of images.
-        if (!m_running || !frame.isValid() || m_haveFrame) return;
+        // Convert only one frame per timer interval; retain colors rather than images.
+        if (!m_running || !frame.isValid() || m_sampled) return;
         const auto image = frame.toImage();
         if (image.isNull()) return;
         m_target = sampleScreenColors(image);
         m_haveFrame = true;
+        m_sampled = true;
     });
     connect(&m_capture, &QScreenCapture::errorOccurred, this,
             [this](QScreenCapture::Error, const QString &message) {
@@ -42,6 +44,7 @@ void ScreenSync::start(int brightness)
     m_current.fill(Qt::black);
     m_target = m_current;
     m_haveFrame = false;
+    m_sampled = false;
     m_stopping = false;
     m_running = true;
     m_writer = std::thread([this, generation] {
@@ -95,13 +98,15 @@ void ScreenSync::stop()
     m_ready.notify_all();
     if (m_writer.joinable()) m_writer.join();
     m_haveFrame = false;
+    m_sampled = false;
 }
 
 void ScreenSync::tick()
 {
+    m_sampled = false;
     if (!m_running || !m_haveFrame) return;
+    // Some backends emit only on screen changes; keep converging to the last target.
     m_current = smoothScreenColors(m_current, m_target);
-    m_haveFrame = false;
     LAParams params{LAEffect::Static, 1, static_cast<uint8_t>(m_brightness), {}, LAWaveDir::None};
     for (int i = 0; i < 4; ++i)
         params.zones[i] = {static_cast<uint8_t>(m_current[i].red()),

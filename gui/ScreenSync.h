@@ -6,7 +6,6 @@
 #include <QScreenCapture>
 #include <QVideoSink>
 #include <QTimer>
-#include <atomic>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -32,7 +31,7 @@ private:
     QVideoSink m_sink;
     QTimer m_timer;
     ScreenColors m_current{}, m_target{};
-    bool m_running = false, m_haveFrame = false;
+    bool m_running = false, m_haveFrame = false, m_sampled = false;
     int m_brightness = 1;
     quint64 m_generation = 0;
     std::thread m_writer;
