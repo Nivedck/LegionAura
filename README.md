@@ -90,6 +90,10 @@ Screen Sync needs the GUI running (minimized is fine). Switching effects, pressi
 
 Wayland requires a working PipeWire service and an XDG Desktop Portal backend with ScreenCast support for your desktop (for example, `xdg-desktop-portal-gnome` on GNOME). Qt Multimedia must have its FFmpeg backend available. If screen sharing is denied or stopped, or a keyboard write fails, the status bar reports it; press Apply to retry after resolving the problem.
 
+### GNOME Wayland fullscreen capture
+
+Some Mutter versions stop delivering CPU-memory capture frames when fullscreen content enters direct scanout. Mutter 50.5 includes the [upstream fix](https://github.com/GNOME/mutter/commit/817424e85c3c4ae1a242978c34d210c6fc7b4c0c); a distribution backport also works. On affected desktops, use a maximized window / theater mode until the compositor is updated. LegionAura cannot update lighting while the compositor is not supplying frames.
+
 ### Development checks
 
 After building, run `ctest --test-dir build --output-on-failure` for synthetic color sampling and smoothing checks. For integration testing with a supported keyboard:

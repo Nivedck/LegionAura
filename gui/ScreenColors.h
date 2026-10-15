@@ -8,7 +8,7 @@ using ScreenColors = std::array<QColor, 4>;
 
 // Sample a bounded grid directly: no full-resolution quadrant copies, even at 4K.
 // Chroma weighting prevents neutral pixels from washing vivid regions toward white.
-inline ScreenColors sampleScreenColors(const QImage &image, bool vivid = true)
+inline ScreenColors sampleScreenColors(const QImage &image)
 {
     ScreenColors colors;
     colors.fill(Qt::black);
@@ -31,7 +31,7 @@ inline ScreenColors sampleScreenColors(const QImage &image, bool vivid = true)
         }
         const int count = nx * ny;
         // Fade the weighting out when colorful pixels cover only a tiny area.
-        const double mix = vivid ? std::min(1.0, 4.0 * weight / count) : 0.0;
+        const double mix = std::min(1.0, 4.0 * weight / count);
         auto channel = [&](double sum, double weighted) {
             return std::clamp(int((1.0 - mix) * sum / count
                                  + (weight > 0 ? mix * weighted / weight : 0)), 0, 255);
