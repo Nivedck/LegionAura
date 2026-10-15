@@ -6,28 +6,37 @@
 
 using ScreenColors = std::array<QColor, 4>;
 
-// Sample each quarter independently so downsampling cannot mix zone boundaries.
-inline ScreenColors sampleScreenColors(const QImage &image)
+// Sample a bounded grid directly: no full-resolution quadrant copies, even at 4K.
+// Chroma weighting prevents neutral pixels from washing vivid regions toward white.
+inline ScreenColors sampleScreenColors(const QImage &image, bool vivid = true)
 {
     ScreenColors colors;
     colors.fill(Qt::black);
     if (image.isNull()) return colors;
     for (int zone = 0; zone < 4; ++zone) {
-        int left = zone * image.width() / 4;
-        int right = (zone + 1) * image.width() / 4;
-        if (right <= left) right = left + 1;
-        auto small = image.copy(left, 0, right - left, image.height())
-                         .scaled(24, 24, Qt::IgnoreAspectRatio, Qt::FastTransformation)
-                         .convertToFormat(QImage::Format_RGB32);
-        int r = 0, g = 0, b = 0;
-        for (int y = 0; y < small.height(); ++y) {
-            auto row = reinterpret_cast<const QRgb *>(small.constScanLine(y));
-            for (int x = 0; x < small.width(); ++x) {
-                r += qRed(row[x]); g += qGreen(row[x]); b += qBlue(row[x]);
+        const int left = zone * image.width() / 4;
+        const int width = std::max(1, (zone + 1) * image.width() / 4 - left);
+        const int nx = std::min(24, width), ny = std::min(24, image.height());
+        double r = 0, g = 0, b = 0, wr = 0, wg = 0, wb = 0, weight = 0;
+        for (int y = 0; y < ny; ++y) {
+            for (int x = 0; x < nx; ++x) {
+                const QColor c = image.pixelColor(left + x * width / nx, y * image.height() / ny);
+                r += c.red(); g += c.green(); b += c.blue();
+                const double chroma = (std::max({c.red(), c.green(), c.blue()})
+                                     - std::min({c.red(), c.green(), c.blue()})) / 255.0;
+                const double w = chroma * chroma;
+                wr += c.red() * w; wg += c.green() * w; wb += c.blue() * w;
+                weight += w;
             }
         }
-        const int count = small.width() * small.height();
-        colors[zone] = QColor(r / count, g / count, b / count);
+        const int count = nx * ny;
+        // Fade the weighting out when colorful pixels cover only a tiny area.
+        const double mix = vivid ? std::min(1.0, 4.0 * weight / count) : 0.0;
+        auto channel = [&](double sum, double weighted) {
+            return std::clamp(int((1.0 - mix) * sum / count
+                                 + (weight > 0 ? mix * weighted / weight : 0)), 0, 255);
+        };
+        colors[zone] = QColor(channel(r, wr), channel(g, wg), channel(b, wb));
     }
     return colors;
 }

@@ -29,7 +29,15 @@ int main()
     QImage mixed(8, 2, QImage::Format_RGB32); mixed.fill(Qt::black);
     for (int x = 0; x < mixed.width(); ++x) mixed.setPixelColor(x, 0, Qt::white);
     ScreenColors gray; gray.fill(QColor(127, 127, 127));
-    check(sampleScreenColors(mixed) == gray, "Sampling must average each region");
+    check(sampleScreenColors(mixed, false) == gray, "Sampling must average each region");
+    check(sampleScreenColors(mixed) == gray, "Neutral content must retain its brightness");
+    QImage washed(8, 2, QImage::Format_RGB32); washed.fill(Qt::white);
+    for (int x = 0; x < washed.width(); ++x) washed.setPixelColor(x, 0, Qt::red);
+    check(sampleScreenColors(washed) == red, "White pixels must not turn saturated red into pink");
+    check(sampleScreenColors(washed, false)[0] == QColor(255, 127, 127),
+          "Diagnostic average must show unmodified input");
+    QImage neutral(8, 8, QImage::Format_RGB32); neutral.fill(QColor(70, 70, 70));
+    check(sampleScreenColors(neutral)[0] == QColor(70, 70, 70), "Gray must not gain a color cast");
     auto smoothed = smoothScreenColors(black, expected);
     check(smoothed[0].red() > 0 && smoothed[0].red() < 255, "Transitions must be gradual");
     for (int i = 0; i < 30; ++i) smoothed = smoothScreenColors(smoothed, expected);
