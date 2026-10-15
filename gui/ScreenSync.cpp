@@ -1,24 +1,24 @@
 #include "ScreenSync.h"
 #include <QGuiApplication>
 #include <QVideoFrame>
-#include <chrono>
 
 ScreenSync::ScreenSync(LegionAura &keyboard, QObject *parent)
     : QObject(parent), m_keyboard(keyboard)
 {
     m_session.setScreenCapture(&m_capture);
     m_session.setVideoSink(&m_sink);
-    m_timer.setInterval(100);
+    // Continue fades on static screens; incoming frames are processed immediately.
+    m_timer.setInterval(16);
     m_timer.setTimerType(Qt::PreciseTimer);
     connect(&m_timer, &QTimer::timeout, this, &ScreenSync::tick);
     connect(&m_sink, &QVideoSink::videoFrameChanged, this, [this](const QVideoFrame &frame) {
-        // Convert only one frame per timer interval; retain colors rather than images.
-        if (!m_running || !frame.isValid() || m_sampled) return;
+        // Follow the capture frame rate without an artificial FPS cap.
+        if (!m_running || !frame.isValid()) return;
         const auto image = frame.toImage();
         if (image.isNull()) return;
         m_target = sampleScreenColors(image);
         m_haveFrame = true;
-        m_sampled = true;
+        tick();
     });
     connect(&m_capture, &QScreenCapture::errorOccurred, this,
             [this](QScreenCapture::Error, const QString &message) {
@@ -44,7 +44,6 @@ void ScreenSync::start(int brightness)
     m_current.fill(Qt::black);
     m_target = m_current;
     m_haveFrame = false;
-    m_sampled = false;
     m_stopping = false;
     m_running = true;
     m_writer = std::thread([this, generation] {
@@ -73,9 +72,7 @@ void ScreenSync::start(int brightness)
                 return;
             }
             previous = params;
-            // Bound writes even when a slow USB transfer has accumulated a newer frame.
-            std::unique_lock<std::mutex> lock(m_mutex);
-            if (m_ready.wait_for(lock, std::chrono::milliseconds(100), [this] { return m_stopping; })) return;
+            // Send the latest pending colors immediately; slow transfers never build a queue.
         }
     });
     if (QGuiApplication::platformName() != "wayland")
@@ -98,12 +95,10 @@ void ScreenSync::stop()
     m_ready.notify_all();
     if (m_writer.joinable()) m_writer.join();
     m_haveFrame = false;
-    m_sampled = false;
 }
 
 void ScreenSync::tick()
 {
-    m_sampled = false;
     if (!m_running || !m_haveFrame) return;
     // Some backends emit only on screen changes; keep converging to the last target.
     m_current = smoothScreenColors(m_current, m_target);

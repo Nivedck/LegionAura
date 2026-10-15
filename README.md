@@ -84,7 +84,7 @@ legionaura-gui
 
 ### Screen Sync
 
-Select **Screen Sync** and press **Apply**. On Wayland, choose a monitor in the desktop screen-sharing picker. On X11, the primary monitor is used. Each vertical quarter of that screen drives the matching keyboard zone, left to right. Colors blend smoothly, with at most 10 USB updates per second; the brightness slider remains available.
+Select **Screen Sync** and press **Apply**. On Wayland, choose a monitor in the desktop screen-sharing picker. On X11, the primary monitor is used. Each vertical quarter of that screen drives the matching keyboard zone, left to right. Colors blend smoothly and update at the capture/device rate by default, without an artificial FPS cap. Slow USB transfers retain only the newest pending colors, and unchanged colors skip USB writes. The brightness slider remains available.
 
 Screen Sync needs the GUI running (minimized is fine). Switching effects, pressing Off, reconnecting, or closing the app stops capture. Closing leaves the last applied colors on the keyboard. Screen Sync does not replace your saved lighting profile or automatically request capture at login. Frames are processed in memory and are not saved.
 
