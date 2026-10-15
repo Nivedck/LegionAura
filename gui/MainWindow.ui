@@ -113,6 +113,7 @@
            <item row="0" column="2"><widget class="QPushButton" name="btnEffectWave"><property name="text"><string>Wave</string></property><property name="checkable"><bool>true</bool></property><property name="autoExclusive"><bool>true</bool></property></widget></item>
            <item row="1" column="0"><widget class="QPushButton" name="btnEffectHue"><property name="text"><string>Hue</string></property><property name="checkable"><bool>true</bool></property><property name="autoExclusive"><bool>true</bool></property></widget></item>
            <item row="1" column="1"><widget class="QPushButton" name="btnEffectOff"><property name="text"><string>Off</string></property><property name="checkable"><bool>true</bool></property><property name="autoExclusive"><bool>true</bool></property></widget></item>
+           <item row="1" column="2"><widget class="QPushButton" name="btnEffectScreen"><property name="text"><string>Screen Sync</string></property><property name="toolTip"><string>Mirror four screen regions onto the keyboard. Press Apply to start screen sharing.</string></property><property name="checkable"><bool>true</bool></property><property name="autoExclusive"><bool>true</bool></property></widget></item>
           </layout>
          </item>
          <item>
