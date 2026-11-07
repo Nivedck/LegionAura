@@ -48,7 +48,7 @@ private slots:
     // Slider updates
     void onSliderChanged();
 
-    // Accent modes
+    // Color modes
     void onAccentModeCustom();
     void onAccentModeDesktop();
     void onAccentRefresh();

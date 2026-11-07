@@ -211,7 +211,7 @@ void MainWindow::autoDetectOnStartup()
 }
 
 // ------------------------------------------------------------------
-// Accent Modes
+// Color modes
 // ------------------------------------------------------------------
 void MainWindow::onAccentModeCustom()
 {
@@ -241,6 +241,9 @@ void MainWindow::onAccentRefresh()
     
     if (m_lastAccentResult.found && !m_lastAccentResult.colorHex.isEmpty()) {
         ui->btnAccentSwatch->setText(m_lastAccentResult.colorHex);
+        ui->btnAccentSwatch->setToolTip(
+            QString("Source: %1\n%2")
+                .arg(m_lastAccentResult.providerName, m_lastAccentResult.sourcePath));
         QString hex = m_lastAccentResult.colorHex;
         if (hex.startsWith('#')) hex = hex.mid(1);
         ui->btnAccentSwatch->setStyleSheet(
@@ -248,6 +251,8 @@ void MainWindow::onAccentRefresh()
         );
     } else {
         ui->btnAccentSwatch->setText("Not Found");
+        ui->btnAccentSwatch->setToolTip(
+            "Could not detect an active wallpaper. Use a manual color instead.");
     }
     
     updatePreview();
@@ -362,7 +367,7 @@ void MainWindow::onEffectChanged(int idx)
     bool needsColors = (mode == "static" || mode == "breath");
     bool needsDir    = (mode == "wave");
 
-    // Show the accent toggle for both Static and Breath modes
+    // Show the wallpaper color toggle for both Static and Breath modes
     ui->btnModeCustom->setVisible(needsColors);
     ui->btnModeAccent->setVisible(needsColors);
     

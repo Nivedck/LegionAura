@@ -54,4 +54,12 @@ if(BUILD_TESTING)
     target_include_directories(screen-colors-test PRIVATE gui)
     target_link_libraries(screen-colors-test PRIVATE Qt6::Gui)
     add_test(NAME screen-colors COMMAND screen-colors-test)
+
+    add_executable(accent-color-test
+        tests/AccentColorTest.cpp
+        gui/accent/AccentManager.cpp
+    )
+    target_include_directories(accent-color-test PRIVATE gui)
+    target_link_libraries(accent-color-test PRIVATE Qt6::Gui)
+    add_test(NAME accent-color COMMAND accent-color-test)
 endif()

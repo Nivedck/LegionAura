@@ -28,24 +28,6 @@ add_executable(legionaura-gui
     accent/AccentProvider.h
     accent/AccentManager.h
     accent/AccentManager.cpp
-    accent/providers/NoctaliaV5Provider.h
-    accent/providers/NoctaliaV5Provider.cpp
-    accent/providers/NoctaliaV4Provider.h
-    accent/providers/NoctaliaV4Provider.cpp
-    accent/providers/MatugenProvider.h
-    accent/providers/MatugenProvider.cpp
-    accent/providers/Pywal16Provider.h
-    accent/providers/Pywal16Provider.cpp
-    accent/providers/PywalProvider.h
-    accent/providers/PywalProvider.cpp
-    accent/providers/WallustProvider.h
-    accent/providers/WallustProvider.cpp
-    accent/providers/WpgtkProvider.h
-    accent/providers/WpgtkProvider.cpp
-    accent/providers/KdeProvider.h
-    accent/providers/KdeProvider.cpp
-    accent/providers/GnomeProvider.h
-    accent/providers/GnomeProvider.cpp
 )
 
 target_link_libraries(legionaura-gui
@@ -58,4 +40,3 @@ target_link_libraries(legionaura-gui
 
 install(TARGETS legionaura-gui
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
