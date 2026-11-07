@@ -46,3 +46,12 @@ install(FILES icons/legionaura.png
 # ------------------------------------------------------
 install(FILES legionaura-autostart.desktop
         DESTINATION /usr/share/xdg/autostart)
+
+include(CTest)
+if(BUILD_TESTING)
+    find_package(Qt6 6.5 REQUIRED COMPONENTS Gui)
+    add_executable(screen-colors-test tests/ScreenColorsTest.cpp)
+    target_include_directories(screen-colors-test PRIVATE gui)
+    target_link_libraries(screen-colors-test PRIVATE Qt6::Gui)
+    add_test(NAME screen-colors COMMAND screen-colors-test)
+endif()

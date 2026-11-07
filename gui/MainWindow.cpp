@@ -131,6 +131,13 @@ MainWindow::MainWindow(QWidget *parent)
     m_effectGroup->addButton(ui->btnEffectWave, 2);
     m_effectGroup->addButton(ui->btnEffectHue, 3);
     m_effectGroup->addButton(ui->btnEffectOff, 4);
+    m_effectGroup->addButton(ui->btnEffectScreen, 5);
+    connect(&m_screenSync, &ScreenSync::colorsChanged, this, [this] {
+        const auto colors = m_screenSync.colors();
+        for (int i = 0; i < 4; ++i)
+            ui->keyboardPreviewWidget->setZoneColor(i, colors[i]);
+    });
+    connect(&m_screenSync, &ScreenSync::failed, this, &MainWindow::setStatusErr);
 
     connect(m_effectGroup, &QButtonGroup::idToggled, this, [this](int id, bool checked){
         if(checked) onEffectChanged(id);
@@ -162,6 +169,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    m_screenSync.stop();
     delete ui;
 }
 
@@ -170,6 +178,7 @@ MainWindow::~MainWindow()
 // ------------------------------------------------------------------
 void MainWindow::onDetectClicked()
 {
+    m_screenSync.stop();
     if (kb_.autoDetect()) {
         deviceReady_ = true;
         setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
@@ -193,6 +202,7 @@ void MainWindow::onDetectClicked()
 // ------------------------------------------------------------------
 void MainWindow::autoDetectOnStartup()
 {
+    m_screenSync.stop();
     if (kb_.autoDetect()) {
         deviceReady_ = true;
         setDeviceStatusText(ui, resolveDeviceName(kb_.getPid()), true);
@@ -326,6 +336,7 @@ void MainWindow::onPickZ4()
 // ------------------------------------------------------------------
 void MainWindow::onSliderChanged()
 {
+    m_screenSync.setBrightness(ui->sliderBrightness->value());
     ui->lblSpeedVal->setText(QString::number(ui->sliderSpeed->value()));
     ui->lblBrightVal->setText(QString::number(ui->sliderBrightness->value()));
 }
@@ -335,6 +346,8 @@ void MainWindow::onSliderChanged()
 // ------------------------------------------------------------------
 void MainWindow::onEffectChanged(int idx)
 {
+    m_screenSync.stop();
+    ui->sliderSpeed->setEnabled(idx != 5);
     QString mode;
     switch (idx) {
         case 0: mode = "static"; break;
@@ -342,6 +355,7 @@ void MainWindow::onEffectChanged(int idx)
         case 2: mode = "wave"; break;
         case 3: mode = "hue"; break;
         case 4: mode = "off"; break;
+        case 5: mode = "screen"; break;
         default: mode = "static"; break;
     }
 
@@ -385,9 +399,11 @@ void MainWindow::updatePreview()
         case 2: mode = "wave"; break;
         case 3: mode = "hue"; break;
         case 4: mode = "off"; break;
+        case 5: mode = "screen"; break;
         default: mode = "static"; break;
     }
     bool needsColors = (mode == "static" || mode == "breath");
+    if (mode == "screen") return;
 
     if (!needsColors) {
         for (int i=0; i<4; i++) ui->keyboardPreviewWidget->setZoneColor(i, QColor(0,0,0));
@@ -467,6 +483,7 @@ std::optional<LAParams> MainWindow::buildParamsFromUi() const
         case 2: mode = "wave"; break;
         case 3: mode = "hue"; break;
         case 4: mode = "off"; break;
+        case 5: mode = "screen"; break;
         default: mode = "static"; break;
     }
 
@@ -549,6 +566,12 @@ void MainWindow::onApplyClicked()
         return;
     }
 
+    if (idx == 5) {
+        setStatusOk("Screen Sync: choose a screen if prompted. Keep the app open to sync.");
+        m_screenSync.start(ui->sliderBrightness->value());
+        return;
+    }
+    m_screenSync.stop();
     auto params = buildParamsFromUi();
     if (!params) {
         setStatusErr("Invalid color values or no accent detected.");
@@ -569,6 +592,7 @@ void MainWindow::onApplyClicked()
 // ------------------------------------------------------------------
 void MainWindow::onOffClicked()
 {
+    m_screenSync.stop();
     if (!deviceReady_) {
         setStatusErr("Device not connected.");
         return;

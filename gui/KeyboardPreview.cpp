@@ -51,7 +51,7 @@ void KeyboardPreview::paintEvent(QPaintEvent *event)
 
         QColor fill = QColor(20, 20, 20); // default dark key color
 
-        if (m_mode == "static" || m_mode == "breath") {
+        if (m_mode == "static" || m_mode == "breath" || m_mode == "screen") {
             if (m_zoneColors[i].isValid() && m_zoneColors[i] != QColor(0, 0, 0)) {
                 fill = m_zoneColors[i];
                 // Make it look a bit like glowing keys by dimming the background

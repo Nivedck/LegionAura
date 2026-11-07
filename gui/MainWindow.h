@@ -7,6 +7,7 @@
 #include <array>
 #include <optional>
 #include "legionaura.h"
+#include "ScreenSync.h"
 #include <QButtonGroup>
 #include "accent/AccentManager.h"
 
@@ -70,6 +71,7 @@ private:
 private:
     Ui::MainWindow *ui;
     LegionAura kb_;
+    ScreenSync m_screenSync{kb_};
     bool deviceReady_ = false;
     QButtonGroup* m_effectGroup = nullptr;
     
