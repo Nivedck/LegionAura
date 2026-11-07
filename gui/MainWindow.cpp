@@ -4,6 +4,9 @@
 #include "ui_MainWindow.h"
 
 #include <QColorDialog>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QDir>
 #include <QPushButton>
 #include <QLineEdit>
 #include <QComboBox>
@@ -143,8 +146,8 @@ MainWindow::MainWindow(QWidget *parent)
         if(checked) onEffectChanged(id);
     });
 
-    connect(ui->sliderSpeed, &QSlider::valueChanged, this, &MainWindow::onSliderChanged);
-    connect(ui->sliderBrightness, &QSlider::valueChanged, this, &MainWindow::onSliderChanged);
+    connect(ui->comboSpeed, &QComboBox::currentIndexChanged, this, &MainWindow::onSliderChanged);
+    connect(ui->comboBrightness, &QComboBox::currentIndexChanged, this, &MainWindow::onSliderChanged);
 
     connect(ui->editZ1, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
     connect(ui->editZ2, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
@@ -154,6 +157,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnModeCustom, &QPushButton::clicked, this, &MainWindow::onAccentModeCustom);
     connect(ui->btnModeAccent, &QPushButton::clicked, this, &MainWindow::onAccentModeDesktop);
     connect(ui->btnAccentRefresh, &QPushButton::clicked, this, &MainWindow::onAccentRefresh);
+    connect(ui->btnChooseWallpaper, &QPushButton::clicked, this, &MainWindow::onChooseWallpaper);
 
     ui->btnEffectStatic->setChecked(true);
     onEffectChanged(0);
@@ -237,13 +241,18 @@ void MainWindow::onAccentRefresh()
     ui->btnAccentSwatch->setStyleSheet("background: #242428; border: 2px solid #555; border-radius: 8px; font-size: 14px; font-weight: bold; color: white;");
     QCoreApplication::processEvents();
     
-    m_lastAccentResult = m_accentManager.detectAccentColor();
-    
+    m_lastAccentResult = m_manualWallpaperPath.isEmpty()
+        ? m_accentManager.detectAccentColor()
+        : m_accentManager.detectAccentColor(m_manualWallpaperPath);
+
     if (m_lastAccentResult.found && !m_lastAccentResult.colorHex.isEmpty()) {
         ui->btnAccentSwatch->setText(m_lastAccentResult.colorHex);
         ui->btnAccentSwatch->setToolTip(
             QString("Source: %1\n%2")
                 .arg(m_lastAccentResult.providerName, m_lastAccentResult.sourcePath));
+        ui->lblWallpaperSource->setText(
+            QString("%1: %2").arg(m_lastAccentResult.providerName,
+                                  QFileInfo(m_lastAccentResult.sourcePath).fileName()));
         QString hex = m_lastAccentResult.colorHex;
         if (hex.startsWith('#')) hex = hex.mid(1);
         ui->btnAccentSwatch->setStyleSheet(
@@ -253,9 +262,22 @@ void MainWindow::onAccentRefresh()
         ui->btnAccentSwatch->setText("Not Found");
         ui->btnAccentSwatch->setToolTip(
             "Could not detect an active wallpaper. Use a manual color instead.");
+        ui->lblWallpaperSource->setText("Wallpaper not detected");
     }
-    
+
     updatePreview();
+}
+
+void MainWindow::onChooseWallpaper()
+{
+    const QString path = QFileDialog::getOpenFileName(
+        this, "Choose wallpaper", QDir::homePath(),
+        "Images (*.png *.jpg *.jpeg *.webp *.bmp *.gif *.avif *.jxl)");
+    if (path.isEmpty())
+        return;
+
+    m_manualWallpaperPath = path;
+    onAccentRefresh();
 }
 
 // ------------------------------------------------------------------
@@ -341,9 +363,7 @@ void MainWindow::onPickZ4()
 // ------------------------------------------------------------------
 void MainWindow::onSliderChanged()
 {
-    m_screenSync.setBrightness(ui->sliderBrightness->value());
-    ui->lblSpeedVal->setText(QString::number(ui->sliderSpeed->value()));
-    ui->lblBrightVal->setText(QString::number(ui->sliderBrightness->value()));
+    m_screenSync.setBrightness(ui->comboBrightness->currentIndex() + 1);
 }
 
 // ------------------------------------------------------------------
@@ -352,7 +372,7 @@ void MainWindow::onSliderChanged()
 void MainWindow::onEffectChanged(int idx)
 {
     m_screenSync.stop();
-    ui->sliderSpeed->setEnabled(idx != 5);
+    ui->comboSpeed->setEnabled(idx != 5);
     QString mode;
     switch (idx) {
         case 0: mode = "static"; break;
@@ -493,8 +513,8 @@ std::optional<LAParams> MainWindow::buildParamsFromUi() const
     }
 
     LAParams p;
-    p.speed      = ui->sliderSpeed->value();
-    p.brightness = ui->sliderBrightness->value();
+    p.speed      = ui->comboSpeed->currentIndex() + 1;
+    p.brightness = ui->comboBrightness->currentIndex() + 1;
     p.waveDir    = LAWaveDir::None;
 
     if (mode == "static")      p.effect = LAEffect::Static;
@@ -573,7 +593,7 @@ void MainWindow::onApplyClicked()
 
     if (idx == 5) {
         setStatusOk("Screen Sync: choose a screen if prompted. Keep the app open to sync.");
-        m_screenSync.start(ui->sliderBrightness->value());
+        m_screenSync.start(ui->comboBrightness->currentIndex() + 1);
         return;
     }
     m_screenSync.stop();

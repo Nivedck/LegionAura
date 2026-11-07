@@ -52,6 +52,7 @@ private slots:
     void onAccentModeCustom();
     void onAccentModeDesktop();
     void onAccentRefresh();
+    void onChooseWallpaper();
 
 private:
     std::optional<QString> pickHexColor(const QString &initialHex);
@@ -78,4 +79,5 @@ private:
     AccentManager m_accentManager;
     bool m_desktopAccentMode = false;
     AccentColorResult m_lastAccentResult;
+    QString m_manualWallpaperPath;
 };

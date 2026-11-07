@@ -122,15 +122,13 @@
            <item row="0" column="0"><widget class="QLabel" name="lblSpeed"><property name="text"><string>Speed</string></property></widget></item>
            <item row="0" column="1">
             <layout class="QHBoxLayout">
-             <item><widget class="QSlider" name="sliderSpeed"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="minimum"><number>1</number></property><property name="maximum"><number>4</number></property><property name="pageStep"><number>1</number></property><property name="tickPosition"><enum>QSlider::TicksBelow</enum></property></widget></item>
-             <item><widget class="QLabel" name="lblSpeedVal"><property name="text"><string>1</string></property></widget></item>
+             <item><widget class="QComboBox" name="comboSpeed"><item><property name="text"><string>Slow</string></property></item><item><property name="text"><string>Normal</string></property></item><item><property name="text"><string>Fast</string></property></item><item><property name="text"><string>Very fast</string></property></item></widget></item>
             </layout>
            </item>
            <item row="1" column="0"><widget class="QLabel" name="lblBrightness"><property name="text"><string>Brightness</string></property></widget></item>
            <item row="1" column="1">
             <layout class="QHBoxLayout">
-             <item><widget class="QSlider" name="sliderBrightness"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="minimum"><number>1</number></property><property name="maximum"><number>2</number></property><property name="pageStep"><number>1</number></property><property name="tickPosition"><enum>QSlider::TicksBelow</enum></property></widget></item>
-             <item><widget class="QLabel" name="lblBrightVal"><property name="text"><string>1</string></property></widget></item>
+             <item><widget class="QComboBox" name="comboBrightness"><item><property name="text"><string>Low</string></property></item><item><property name="text"><string>High</string></property></item></widget></item>
             </layout>
            </item>
            <item row="2" column="0"><widget class="QLabel" name="lblDirection"><property name="text"><string>Direction</string></property></widget></item>
@@ -208,7 +206,7 @@
          <item>
           <spacer name="zonesSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer>
          </item>
-        </layout></widget><widget class="QWidget" name="pageAccent"><layout class="QVBoxLayout" name="pageAccentLayout"><item><widget class="QPushButton" name="btnAccentSwatch"><property name="minimumSize"><size><width>100</width><height>100</height></size></property><property name="text"><string>Detecting...</string></property></widget></item><item><widget class="QPushButton" name="btnAccentRefresh"><property name="text"><string>Refresh</string></property></widget></item></layout></widget></widget></item></layout>
+        </layout></widget><widget class="QWidget" name="pageAccent"><layout class="QVBoxLayout" name="pageAccentLayout"><item><widget class="QPushButton" name="btnAccentSwatch"><property name="minimumSize"><size><width>100</width><height>100</height></size></property><property name="text"><string>Detecting...</string></property></widget></item><item><widget class="QLabel" name="lblWallpaperSource"><property name="text"><string>Wallpaper source not checked</string></property><property name="wordWrap"><bool>true</bool></property></widget></item><item><layout class="QHBoxLayout" name="wallpaperActionsLayout"><item><widget class="QPushButton" name="btnChooseWallpaper"><property name="text"><string>Choose Wallpaper...</string></property></widget></item><item><widget class="QPushButton" name="btnAccentRefresh"><property name="text"><string>Refresh</string></property></widget></item></layout></item></layout></widget></widget></item></layout>
        </widget>
       </item>
      </layout>

@@ -190,18 +190,28 @@ AccentColorResult AccentManager::detectAccentColor() const
     if (wallpaper.path.isEmpty())
         return AccentColorResult{false, "", "Wallpaper", ""};
 
-    QImage image(wallpaper.path);
+    return detectAccentColor(wallpaper.path, wallpaper.source);
+}
+
+AccentColorResult AccentManager::detectAccentColor(const QString& wallpaperPath,
+                                                    const QString& source) const
+{
+    const QString path = wallpaperPath.trimmed();
+    if (path.isEmpty())
+        return AccentColorResult{false, "", source, ""};
+
+    QImage image(path);
     if (image.isNull())
-        return AccentColorResult{false, "", wallpaper.source, wallpaper.path};
+        return AccentColorResult{false, "", source, path};
 
     const QColor accent = extractAccent(image);
     if (!accent.isValid())
-        return AccentColorResult{false, "", wallpaper.source, wallpaper.path};
+        return AccentColorResult{false, "", source, path};
 
     return AccentColorResult{
         true,
         accent.name(QColor::HexRgb),
-        wallpaper.source,
-        wallpaper.path
+        source,
+        path
     };
 }
