@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(LegionAura VERSION 2.1.0)
+project(LegionAura VERSION 2.2.0)
 
 include(GNUInstallDirs)
 
